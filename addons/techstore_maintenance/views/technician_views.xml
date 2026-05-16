@@ -2,9 +2,9 @@
 <odoo>
     <!-- Tree View -->
     <record id="view_techstore_technician_tree" model="ir.ui.view">
-        <name>techstore.technician.tree</name>
-        <model>techstore.technician</model>
-        <arch type="xml">
+        <field name="name">techstore.technician.tree</field>
+        <field name="model">techstore.technician</field>
+        <field name="arch" type="xml">
             <list string="Technicians">
                 <field name="name"/>
                 <field name="identification"/>
@@ -14,14 +14,14 @@
                 <field name="workload_level" widget="badge" decoration-success="workload_level == 'low'" decoration-warning="workload_level == 'medium'" decoration-danger="workload_level in ('high', 'critical')"/>
                 <field name="active" widget="boolean_toggle"/>
             </list>
-        </arch>
+        </field>
     </record>
 
     <!-- Form View -->
     <record id="view_techstore_technician_form" model="ir.ui.view">
-        <name>techstore.technician.form</name>
-        <model>techstore.technician</model>
-        <arch type="xml">
+        <field name="name">techstore.technician.form</field>
+        <field name="model">techstore.technician</field>
+        <field name="arch" type="xml">
             <form string="Technician">
                 <sheet>
                     <div class="oe_title">
@@ -61,14 +61,14 @@
                 </sheet>
                 <chatter/>
             </form>
-        </arch>
+        </field>
     </record>
 
     <!-- Search View -->
     <record id="view_techstore_technician_search" model="ir.ui.view">
-        <name>techstore.technician.search</name>
-        <model>techstore.technician</model>
-        <arch type="xml">
+        <field name="name">techstore.technician.search</field>
+        <field name="model">techstore.technician</field>
+        <field name="arch" type="xml">
             <search string="Search Technicians">
                 <field name="name"/>
                 <field name="identification"/>
@@ -80,19 +80,19 @@
                     <filter string="Workload Level" name="group_workload" context="{'group_by': 'workload_level'}"/>
                 </group>
             </search>
-        </arch>
+        </field>
     </record>
 
     <!-- Action -->
     <record id="action_techstore_technician" model="ir.actions.act_window">
-        <name>Technicians</name>
-        <type>ir.actions.act_window</type>
-        <res_model>techstore.technician</res_model>
-        <view_mode>list,form</view_mode>
-        <help type="html">
+        <field name="name">Technicians</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">techstore.technician</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
                 Register your first technician!
             </p>
-        </help>
+        </field>
     </record>
 </odoo>

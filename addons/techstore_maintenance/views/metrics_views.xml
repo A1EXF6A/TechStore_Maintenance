@@ -2,22 +2,22 @@
 <odoo>
     <!-- Graph View -->
     <record id="view_techstore_maintenance_metrics_graph" model="ir.ui.view">
-        <name>techstore.maintenance.metrics.graph</name>
-        <model>techstore.maintenance.metrics</model>
-        <arch type="xml">
+        <field name="name">techstore.maintenance.metrics.graph</field>
+        <field name="model">techstore.maintenance.metrics</field>
+        <field name="arch" type="xml">
             <graph string="Maintenance Metrics" type="bar">
                 <field name="technician_id"/>
                 <field name="resolution_time" type="measure"/>
                 <field name="quality_indicator" type="measure"/>
             </graph>
-        </arch>
+        </field>
     </record>
 
     <!-- Pivot View -->
     <record id="view_techstore_maintenance_metrics_pivot" model="ir.ui.view">
-        <name>techstore.maintenance.metrics.pivot</name>
-        <model>techstore.maintenance.metrics</model>
-        <arch type="xml">
+        <field name="name">techstore.maintenance.metrics.pivot</field>
+        <field name="model">techstore.maintenance.metrics</field>
+        <field name="arch" type="xml">
             <pivot string="Maintenance Metrics Analysis">
                 <field name="technician_id" type="row"/>
                 <field name="attention_time" type="measure"/>
@@ -25,18 +25,18 @@
                 <field name="technician_efficiency" type="measure"/>
                 <field name="quality_indicator" type="measure"/>
             </pivot>
-        </arch>
+        </field>
     </record>
 
     <!-- Metrics Action -->
     <record id="action_techstore_maintenance_metrics" model="ir.actions.act_window">
-        <name>Maintenance Metrics</name>
-        <res_model>techstore.maintenance.metrics</res_model>
-        <view_mode>graph,pivot</view_mode>
-        <help type="html">
+        <field name="name">Maintenance Metrics</field>
+        <field name="res_model">techstore.maintenance.metrics</field>
+        <field name="view_mode">graph,pivot</field>
+        <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
                 No metrics data available yet.
             </p>
-        </help>
+        </field>
     </record>
 </odoo>

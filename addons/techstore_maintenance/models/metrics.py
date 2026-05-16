@@ -4,7 +4,7 @@ from odoo import models, fields, api
 class TechStoreMaintenanceMetrics(models.Model):
     _name = 'techstore.maintenance.metrics'
     _description = 'Maintenance Metrics and Performance'
-    _auto = False # Use a view or just a table that we populate
+
 
     # Actually, the user asked for a model with suggested fields and automatic calculations.
     # We can use a stored model or a database view. Let's use a stored model for simplicity 

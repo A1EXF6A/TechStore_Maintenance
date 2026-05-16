@@ -2,9 +2,9 @@
 <odoo>
     <!-- Tree View -->
     <record id="view_techstore_equipment_tree" model="ir.ui.view">
-        <name>techstore.equipment.tree</name>
-        <model>techstore.equipment</model>
-        <arch type="xml">
+        <field name="name">techstore.equipment.tree</field>
+        <field name="model">techstore.equipment</field>
+        <field name="arch" type="xml">
             <list string="Equipments">
                 <field name="code"/>
                 <field name="partner_id"/>
@@ -15,14 +15,14 @@
                 <field name="receipt_date"/>
                 <field name="state" widget="badge" decoration-info="state == 'received'" decoration-warning="state == 'under_repair'" decoration-success="state == 'repaired'" decoration-muted="state == 'delivered'"/>
             </list>
-        </arch>
+        </field>
     </record>
 
     <!-- Form View -->
     <record id="view_techstore_equipment_form" model="ir.ui.view">
-        <name>techstore.equipment.form</name>
-        <model>techstore.equipment</model>
-        <arch type="xml">
+        <field name="name">techstore.equipment.form</field>
+        <field name="model">techstore.equipment</field>
+        <field name="arch" type="xml">
             <form string="Equipment">
                 <header>
                     <field name="state" widget="statusbar" statusbar_visible="received,under_repair,repaired,delivered"/>
@@ -57,14 +57,14 @@
                 </sheet>
                 <chatter/>
             </form>
-        </arch>
+        </field>
     </record>
 
     <!-- Search View -->
     <record id="view_techstore_equipment_search" model="ir.ui.view">
-        <name>techstore.equipment.search</name>
-        <model>techstore.equipment</model>
-        <arch type="xml">
+        <field name="name">techstore.equipment.search</field>
+        <field name="model">techstore.equipment</field>
+        <field name="arch" type="xml">
             <search string="Search Equipment">
                 <field name="code"/>
                 <field name="partner_id"/>
@@ -77,19 +77,19 @@
                     <filter string="Status" name="group_status" context="{'group_by': 'state'}"/>
                 </group>
             </search>
-        </arch>
+        </field>
     </record>
 
     <!-- Action -->
     <record id="action_techstore_equipment" model="ir.actions.act_window">
-        <name>Equipment</name>
-        <type>ir.actions.act_window</type>
-        <res_model>techstore.equipment</res_model>
-        <view_mode>list,form</view_mode>
-        <help type="html">
+        <field name="name">Equipment</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">techstore.equipment</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
                 Register a new equipment!
             </p>
-        </help>
+        </field>
     </record>
 </odoo>
