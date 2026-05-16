@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15
+    container_name: odoo18-db
+    restart: always
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: odoo
+      POSTGRES_PASSWORD: odoo
+
+    volumes:
+      - proyecto_final_db-data:/var/lib/postgresql/data
+
+    networks:
+      - odoo-net
+
+  odoo:
+    image: odoo:18
+    container_name: odoo18
+
+    depends_on:
+      - db
+
+    restart: always
+
+    ports:
+      - "8069:8069"
+      - "8072:8072"
+
+    volumes:
+      - ./addons:/mnt/extra-addons
+      - ./config/odoo.conf:/etc/odoo/odoo.conf
+      - proyecto_final_odoo-filestore:/var/lib/odoo
+
+    environment:
+      HOST: db
+      USER: odoo
+      PASSWORD: odoo
+
+    command: odoo -c /etc/odoo/odoo.conf
+
+    networks:
+      - odoo-net
+
+volumes:
+  proyecto_final_db-data:
+  proyecto_final_odoo-filestore:
+
+networks:
+  odoo-net:

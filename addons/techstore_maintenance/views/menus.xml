@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Main Menu -->
+    <menuitem id="menu_techstore_maintenance_root"
+              name="TechStore Maintenance"
+              web_icon="techstore_maintenance,static/description/icon.png"
+              sequence="10"/>
+
+    <!-- Dashboard Menu -->
+    <menuitem id="menu_techstore_maintenance_dashboard"
+              name="Dashboard"
+              parent="menu_techstore_maintenance_root"
+              action="action_techstore_maintenance_metrics"
+              sequence="10"/>
+
+    <!-- Maintenances Menu -->
+    <menuitem id="menu_techstore_maintenance_order"
+              name="Maintenances"
+              parent="menu_techstore_maintenance_root"
+              action="action_techstore_maintenance"
+              sequence="20"/>
+
+    <!-- Equipment Menu -->
+    <menuitem id="menu_techstore_equipment"
+              name="Equipment"
+              parent="menu_techstore_maintenance_root"
+              action="action_techstore_equipment"
+              sequence="30"/>
+
+    <!-- Technicians Menu -->
+    <menuitem id="menu_techstore_technicians"
+              name="Technicians"
+              parent="menu_techstore_maintenance_root"
+              action="action_techstore_technician"
+              sequence="40"/>
+
+    <!-- Metrics Menu -->
+    <menuitem id="menu_techstore_metrics"
+              name="Metrics"
+              parent="menu_techstore_maintenance_root"
+              action="action_techstore_maintenance_metrics"
+              sequence="50"/>
+
+    <!-- Configuration Menu (Placeholder for now) -->
+    <menuitem id="menu_techstore_config"
+              name="Configuration"
+              parent="menu_techstore_maintenance_root"
+              sequence="100"
+              groups="group_techstore_admin"/>
+</odoo>

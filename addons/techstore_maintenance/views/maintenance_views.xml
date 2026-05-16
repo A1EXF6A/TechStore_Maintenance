@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Tree View -->
+    <record id="view_techstore_maintenance_tree" model="ir.ui.view">
+        <name>techstore.maintenance.tree</name>
+        <model>techstore.maintenance</model>
+        <arch type="xml">
+            <list string="Maintenances" decoration-danger="priority == '3'" decoration-warning="priority == '2'">
+                <field name="number"/>
+                <field name="partner_id"/>
+                <field name="equipment_id"/>
+                <field name="technician_id"/>
+                <field name="request_date"/>
+                <field name="maintenance_type"/>
+                <field name="priority" widget="priority"/>
+                <field name="state" widget="badge" decoration-info="state == 'nuevo'" decoration-warning="state in ('asignado', 'en_proceso')" decoration-success="state == 'finalizado'" decoration-muted="state == 'cancelado'"/>
+            </list>
+        </arch>
+    </record>
+
+    <!-- Kanban View -->
+    <record id="view_techstore_maintenance_kanban" model="ir.ui.view">
+        <name>techstore.maintenance.kanban</name>
+        <model>techstore.maintenance</model>
+        <arch type="xml">
+            <kanban default_group_by="state" quick_create="false">
+                <field name="number"/>
+                <field name="partner_id"/>
+                <field name="equipment_id"/>
+                <field name="priority"/>
+                <field name="state"/>
+                <templates>
+                    <t t-name="card">
+                        <div class="oe_kanban_global_click">
+                            <div class="oe_kanban_details">
+                                <strong class="o_kanban_record_title">
+                                    <field name="number"/>
+                                </strong>
+                                <div>
+                                    <span>Client: </span><field name="partner_id"/>
+                                </div>
+                                <div>
+                                    <span>Equipment: </span><field name="equipment_id"/>
+                                </div>
+                                <div class="o_kanban_record_bottom">
+                                    <div class="oe_kanban_bottom_left">
+                                        <field name="priority" widget="priority"/>
+                                    </div>
+                                    <div class="oe_kanban_bottom_right">
+                                        <field name="technician_id" widget="many2one_avatar_user"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </arch>
+    </record>
+
+    <!-- Form View -->
+    <record id="view_techstore_maintenance_form" model="ir.ui.view">
+        <name>techstore.maintenance.form</name>
+        <model>techstore.maintenance</model>
+        <arch type="xml">
+            <form string="Maintenance Request">
+                <header>
+                    <button name="%(action_techstore_technician)d" type="action" string="Assign Technician" invisible="state != 'nuevo'" class="oe_highlight" groups="techstore_maintenance.group_techstore_supervisor"/>
+                    <field name="state" widget="statusbar" statusbar_visible="nuevo,asignado,en_proceso,pendiente,finalizado,cancelado" clickable="True"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="number"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group string="Client &amp; Equipment">
+                            <field name="partner_id"/>
+                            <field name="equipment_id"/>
+                            <field name="technician_id" options="{'no_create': True}"/>
+                        </group>
+                        <group string="Planning">
+                            <field name="maintenance_type"/>
+                            <field name="priority" widget="priority"/>
+                            <field name="request_date" readonly="1"/>
+                            <field name="start_date"/>
+                            <field name="end_date"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Problem &amp; Diagnosis" name="problem">
+                            <group>
+                                <field name="description"/>
+                                <field name="diagnosis"/>
+                                <field name="solution"/>
+                            </group>
+                        </page>
+                        <page string="Costs &amp; Times" name="costs">
+                            <group>
+                                <group string="Costs">
+                                    <field name="estimated_cost"/>
+                                    <field name="final_cost"/>
+                                </group>
+                                <group string="Execution Time">
+                                    <field name="estimated_time"/>
+                                    <field name="real_time"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Satisfaction &amp; History" name="history">
+                            <group>
+                                <field name="customer_satisfaction" widget="priority"/>
+                                <field name="observations"/>
+                            </group>
+                            <separator string="Status History"/>
+                            <field name="history_ids" readonly="1">
+                                <list>
+                                    <field name="change_date"/>
+                                    <field name="old_state"/>
+                                    <field name="new_state"/>
+                                    <field name="user_id"/>
+                                    <field name="comment"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </arch>
+    </record>
+
+    <!-- Search View -->
+    <record id="view_techstore_maintenance_search" model="ir.ui.view">
+        <name>techstore.maintenance.search</name>
+        <model>techstore.maintenance</model>
+        <arch type="xml">
+            <search string="Search Maintenance">
+                <field name="number"/>
+                <field name="partner_id"/>
+                <field name="equipment_id"/>
+                <field name="technician_id"/>
+                <filter string="My Maintenances" name="my_maintenances" domain="[('technician_id.user_id', '=', uid)]"/>
+                <filter string="Critical Priority" name="critical" domain="[('priority', '=', '3')]"/>
+                <filter string="Pending" name="pending" domain="[('state', 'not in', ('finalizado', 'cancelado'))]"/>
+                <group expand="0" string="Group By">
+                    <filter string="Status" name="group_status" context="{'group_by': 'state'}"/>
+                    <filter string="Technician" name="group_technician" context="{'group_by': 'technician_id'}"/>
+                    <filter string="Client" name="group_client" context="{'group_by': 'partner_id'}"/>
+                    <filter string="Priority" name="group_priority" context="{'group_by': 'priority'}"/>
+                </group>
+            </search>
+        </arch>
+    </record>
+
+    <!-- Action -->
+    <record id="action_techstore_maintenance" model="ir.actions.act_window">
+        <name>Maintenances</name>
+        <type>ir.actions.act_window</type>
+        <res_model>techstore.maintenance</res_model>
+        <view_mode>kanban,list,form</view_mode>
+        <context>{'search_default_pending': 1}</context>
+        <help type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create your first maintenance request!
+            </p>
+        </help>
+    </record>
+</odoo>

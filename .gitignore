@@ -1,0 +1,43 @@
+# .gitignore para el proyecto Odoo
+# Ignorar artefactos de Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Entornos virtuales
+venv/
+ENV/
+env/
+.venv/
+
+# Distribución/paquetes
+build/
+dist/
+*.egg-info/
+
+# Logs y reportes
+*.log
+.coverage
+.pytest_cache/
+
+# Editor/IDE
+.vscode/
+.idea/
+*.swp
+*~
+
+# Sistema
+.DS_Store
+Thumbs.db
+
+# Node
+node_modules/
+
+# Archivos de Docker/entorno local
+.env
+docker-compose.override.yml
+
+# Odoo - evitar incluir filestore o datos locales pesados
+db-data/
+odoo-filestore/
+/var/lib/odoo/

@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Tree View -->
+    <record id="view_techstore_technician_tree" model="ir.ui.view">
+        <name>techstore.technician.tree</name>
+        <model>techstore.technician</model>
+        <arch type="xml">
+            <list string="Technicians">
+                <field name="name"/>
+                <field name="identification"/>
+                <field name="phone"/>
+                <field name="specialty"/>
+                <field name="maintenance_count"/>
+                <field name="workload_level" widget="badge" decoration-success="workload_level == 'low'" decoration-warning="workload_level == 'medium'" decoration-danger="workload_level in ('high', 'critical')"/>
+                <field name="active" widget="boolean_toggle"/>
+            </list>
+        </arch>
+    </record>
+
+    <!-- Form View -->
+    <record id="view_techstore_technician_form" model="ir.ui.view">
+        <name>techstore.technician.form</name>
+        <model>techstore.technician</model>
+        <arch type="xml">
+            <form string="Technician">
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" placeholder="Full Name"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="identification"/>
+                            <field name="phone"/>
+                            <field name="email"/>
+                            <field name="specialty"/>
+                        </group>
+                        <group>
+                            <field name="user_id" options="{'no_create': True}"/>
+                            <field name="active"/>
+                            <field name="maintenance_count"/>
+                            <field name="workload_level" widget="badge" decoration-success="workload_level == 'low'" decoration-warning="workload_level == 'medium'" decoration-danger="workload_level in ('high', 'critical')"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Observations" name="observations">
+                            <field name="observations" placeholder="Additional notes..."/>
+                        </page>
+                        <page string="Assigned Maintenances" name="maintenances">
+                            <field name="maintenance_ids" readonly="1">
+                                <list>
+                                    <field name="number"/>
+                                    <field name="partner_id"/>
+                                    <field name="state"/>
+                                    <field name="priority"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </arch>
+    </record>
+
+    <!-- Search View -->
+    <record id="view_techstore_technician_search" model="ir.ui.view">
+        <name>techstore.technician.search</name>
+        <model>techstore.technician</model>
+        <arch type="xml">
+            <search string="Search Technicians">
+                <field name="name"/>
+                <field name="identification"/>
+                <field name="specialty"/>
+                <filter string="Active" name="active" domain="[('active', '=', True)]"/>
+                <filter string="Inactive" name="inactive" domain="[('active', '=', False)]"/>
+                <group expand="0" string="Group By">
+                    <filter string="Specialty" name="group_specialty" context="{'group_by': 'specialty'}"/>
+                    <filter string="Workload Level" name="group_workload" context="{'group_by': 'workload_level'}"/>
+                </group>
+            </search>
+        </arch>
+    </record>
+
+    <!-- Action -->
+    <record id="action_techstore_technician" model="ir.actions.act_window">
+        <name>Technicians</name>
+        <type>ir.actions.act_window</type>
+        <res_model>techstore.technician</res_model>
+        <view_mode>list,form</view_mode>
+        <help type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Register your first technician!
+            </p>
+        </help>
+    </record>
+</odoo>

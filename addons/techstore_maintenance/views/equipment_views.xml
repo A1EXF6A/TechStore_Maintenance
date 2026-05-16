@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Tree View -->
+    <record id="view_techstore_equipment_tree" model="ir.ui.view">
+        <name>techstore.equipment.tree</name>
+        <model>techstore.equipment</model>
+        <arch type="xml">
+            <list string="Equipments">
+                <field name="code"/>
+                <field name="partner_id"/>
+                <field name="equipment_type"/>
+                <field name="brand"/>
+                <field name="model"/>
+                <field name="serial_number"/>
+                <field name="receipt_date"/>
+                <field name="state" widget="badge" decoration-info="state == 'received'" decoration-warning="state == 'under_repair'" decoration-success="state == 'repaired'" decoration-muted="state == 'delivered'"/>
+            </list>
+        </arch>
+    </record>
+
+    <!-- Form View -->
+    <record id="view_techstore_equipment_form" model="ir.ui.view">
+        <name>techstore.equipment.form</name>
+        <model>techstore.equipment</model>
+        <arch type="xml">
+            <form string="Equipment">
+                <header>
+                    <field name="state" widget="statusbar" statusbar_visible="received,under_repair,repaired,delivered"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="code"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="partner_id"/>
+                            <field name="equipment_type"/>
+                            <field name="brand"/>
+                            <field name="model"/>
+                        </group>
+                        <group>
+                            <field name="serial_number"/>
+                            <field name="receipt_date"/>
+                            <field name="has_warranty"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Problem Description" name="problem">
+                            <field name="problem_description" placeholder="Description of the issue..."/>
+                        </page>
+                        <page string="Observations" name="observations">
+                            <field name="observations" placeholder="Additional notes..."/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </arch>
+    </record>
+
+    <!-- Search View -->
+    <record id="view_techstore_equipment_search" model="ir.ui.view">
+        <name>techstore.equipment.search</name>
+        <model>techstore.equipment</model>
+        <arch type="xml">
+            <search string="Search Equipment">
+                <field name="code"/>
+                <field name="partner_id"/>
+                <field name="serial_number"/>
+                <field name="brand"/>
+                <field name="model"/>
+                <group expand="0" string="Group By">
+                    <filter string="Client" name="group_partner" context="{'group_by': 'partner_id'}"/>
+                    <filter string="Type" name="group_type" context="{'group_by': 'equipment_type'}"/>
+                    <filter string="Status" name="group_status" context="{'group_by': 'state'}"/>
+                </group>
+            </search>
+        </arch>
+    </record>
+
+    <!-- Action -->
+    <record id="action_techstore_equipment" model="ir.actions.act_window">
+        <name>Equipment</name>
+        <type>ir.actions.act_window</type>
+        <res_model>techstore.equipment</res_model>
+        <view_mode>list,form</view_mode>
+        <help type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Register a new equipment!
+            </p>
+        </help>
+    </record>
+</odoo>

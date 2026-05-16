@@ -1,0 +1,113 @@
+Taller final
+TALLER FINAL – CALIDAD DEL SOFTWARE (TECHSTORE – ODOO)
+Objetivo
+Evaluar la calidad del módulo de ventas de TechStore mediante:
+• Ejecución de pruebas 
+• Aplicación de enfoques formales del ACS 
+• Medición de métricas 
+• Análisis estadístico 
+• Uso de estándares
+ESCENARIO
+La empresa TechStore ha implementado nuevas funcionalidades en el módulo de ventas:
+• Validación de clientes
+• Control de stock
+• Descuentos automáticos
+• Registro de tiempo de respuesta
+• Observaciones automáticas
+Sin embargo, usuarios del sistema han reportado:
+• Resultados inconsistentes
+• Lentitud ocasional
+• Errores en ciertas operaciones
+• Diferencias en cálculos
+• Problemas en validaciones
+La gerencia solicita realizar un proceso de aseguramiento de calidad del software para
+determinar si el sistema puede pasar a producción.
+Métricas
+Porcentaje de error:
+• > 30% → sistema NO aceptable
+• 10% – 30% → mejorar
+• < 10% → aceptable
+Tiempo promedio:
+• > 1s → lento
+• < 0.5s → adecuado
+Desviación estándar:
+• Alta → inestable
+• Baja → confiable
+Actividades
+✓ Diseñar pruebas
+✓ Ejecutar pruebas en el sistema
+✓ Registrar resultados
+✓ Analizar la calidad
+Diseñe casos de prueba para validar:
+Funcionalidad
+• Registro de ventas 
+• Validación de clientes 
+• Aplicación de descuentos 
+• Control de stock 
+Manejo de errores
+• Datos inválidos 
+• Stock insuficiente 
+• Clientes inexistentes 
+Rendimiento
+• Tiempo de respuesta 
+• Estabilidad del sistema 
+Cada prueba debe incluir:
+• Objetivo 
+• Datos de entrada 
+• Resultado esperado 
+• Resultado obtenido 
+• Estado (Correcto/Error)
+Ejecute las pruebas y registre:
+• Resultado obtenido 
+• Mensaje del sistema 
+• Tiempo de respuesta 
+• Evidencia (capturas o logs) 
+Identifique:
+• Errores funcionales 
+• Inconsistencias 
+• Comportamientos inesperados 
+• Fallos de validación
+Calcule:
+Métricas de calidad
+• Porcentaje de error 
+• Tiempo promedio 
+• Tiempo máximo 
+• Tiempo mínimo 
+• Desviación estándar 
+Analice:
+• ¿El sistema es estable? 
+• ¿Existen valores atípicos? 
+• ¿Qué operaciones presentan más problemas?
+Explique qué enfoques del ACS fueron aplicados:
+• Verificación 
+• Validación 
+• Pruebas funcionales 
+• Pruebas de error 
+• Pruebas de rendimiento 
+• Métricas de calidad 
+Indique además:
+• ¿Qué enfoques faltan?
+• ¿Qué riesgos existen actualmente?
+Analice el sistema según:
+ISO 25010
+Evaluar:
+• Fiabilidad 
+• Eficiencia 
+• Usabilidad 
+• Mantenibilidad 
+ISO 12207
+Identificar:
+• Procesos aplicados 
+• Procesos faltantes 
+CMMI
+Indicar:
+• Nivel de madurez aproximado 
+• Justificación técnica
+Con base en los resultados obtenidos:
+Responda:
+• ¿El sistema puede implementarse en producción? 
+• ¿Qué evidencias justifican su decisión? 
+• ¿Qué errores representan mayor riesgo? 
+• ¿Qué métricas indican problemas de calidad? 
+• ¿Qué mejoras priorizaría? 
+• ¿Qué procesos ACS faltan implementar?
