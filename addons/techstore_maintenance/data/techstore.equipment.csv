@@ -1,0 +1,6 @@
+id,partner_id:id,equipment_type,brand,model,serial_number,has_warranty,state,problem_description
+techstore_equipment_1,techstore_client_1,server,Dell,PowerEdge R740,SN-DELL-001,1,under_repair,Server is unexpectedly rebooting under heavy load.
+techstore_equipment_2,techstore_client_1,laptop,Lenovo,ThinkPad T14,SN-LENOVO-002,0,received,Keyboard keys not responding.
+techstore_equipment_3,techstore_client_2,smartphone,Apple,iPhone 13,SN-APPLE-003,0,repaired,Screen was cracked, needs replacement.
+techstore_equipment_4,techstore_client_3,desktop,HP,ProDesk 600,SN-HP-004,1,received,Slow performance and constant freezing.
+techstore_equipment_5,techstore_client_3,printer,Epson,EcoTank L3150,SN-EPSON-005,0,delivered,Not printing in color.

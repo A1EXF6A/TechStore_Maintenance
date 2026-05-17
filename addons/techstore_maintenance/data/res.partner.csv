@@ -1,0 +1,4 @@
+id,name,email,phone,company_type,is_company
+techstore_client_1,Tech Solutions S.A.,contacto@techsolutions.com,+1234567890,company,1
+techstore_client_2,Juan Pérez,juan.perez@email.com,+1987654321,person,0
+techstore_client_3,CyberDyne Systems,admin@cyberdyne.net,+1122334455,company,1

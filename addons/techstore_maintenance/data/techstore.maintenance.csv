@@ -1,0 +1,6 @@
+id,partner_id:id,equipment_id:id,technician_id:id,maintenance_type,priority,state,description,estimated_time,real_time,customer_satisfaction,estimated_cost,final_cost
+techstore_maint_1,techstore_client_1,techstore_equipment_1,techstore_technician_1,corrective,3,en_proceso,Server rebooting randomly under load.,8.0,0.0,,150.0,
+techstore_maint_2,techstore_client_1,techstore_equipment_2,,diagnostic,1,nuevo,Keyboard not working.,1.5,0.0,,25.0,
+techstore_maint_3,techstore_client_2,techstore_equipment_3,techstore_technician_1,corrective,2,finalizado,Screen replacement.,2.0,2.5,4,120.0,135.0
+techstore_maint_4,techstore_client_3,techstore_equipment_4,techstore_technician_2,preventive,1,asignado,General maintenance and cleaning.,3.0,0.0,,50.0,
+techstore_maint_5,techstore_client_3,techstore_equipment_5,techstore_technician_3,corrective,2,finalizado,Printer head alignment and ink refill.,1.0,0.8,3,40.0,40.0
