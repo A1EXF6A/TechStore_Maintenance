@@ -1,0 +1,6 @@
+id,name
+equipment_type_server,Server
+equipment_type_laptop,Portátil
+equipment_type_smartphone,Smartphone
+equipment_type_desktop,Desktop
+equipment_type_printer,Impresora

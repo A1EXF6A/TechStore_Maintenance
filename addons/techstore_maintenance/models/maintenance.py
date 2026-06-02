@@ -1,5 +1,6 @@
 # pyrefly: ignore [missing-import]
 from odoo import models, fields, api, _
+# pyrefly: ignore [missing-import]
 from odoo.exceptions import ValidationError
 from datetime import datetime
 
@@ -75,15 +76,44 @@ class TechStoreMaintenance(models.Model):
         for vals in vals_list:
             if vals.get('number', _('Nuevo')) == _('Nuevo'):
                 vals['number'] = self.env['ir.sequence'].next_by_code('techstore.maintenance') or _('Nuevo')
+        # Antes de crear, si el usuario es técnico (y no admin/supervisor), asignarlo automáticamente
+        user = self.env.user
+        is_tech_user = user.has_group('techstore_maintenance.group_techstore_technician')
+        is_admin = user.has_group('techstore_maintenance.group_techstore_admin')
+        is_sup = user.has_group('techstore_maintenance.group_techstore_supervisor')
+        # buscar técnico asociado al usuario
+        tech_rec = self.env['techstore.technician'].search([('user_id', '=', user.id)], limit=1)
+
+        for vals in vals_list:
+            if is_tech_user and not (is_admin or is_sup):
+                # siempre asignar al técnico vinculado del user si existe
+                if tech_rec:
+                    vals['technician_id'] = tech_rec.id
+                else:
+                    # si no hay técnico vinculado, dejamos el valor tal cual (se validará después)
+                    pass
+
         records = super(TechStoreMaintenance, self).create(vals_list)
         for record in records:
             record._create_history_log('nuevo', 'Mantenimiento Creado')
-            self.env['techstore.maintenance.metrics'].create({'maintenance_id': record.id})
+            self.env['techstore.maintenance.metrics'].sudo().create({'maintenance_id': record.id})
             if record.equipment_id:
                 record.equipment_id.state = 'received'
         return records
 
     def write(self, vals):
+        user = self.env.user
+        is_tech_user = user.has_group('techstore_maintenance.group_techstore_technician')
+        is_admin = user.has_group('techstore_maintenance.group_techstore_admin')
+        is_sup = user.has_group('techstore_maintenance.group_techstore_supervisor')
+
+        # Restricción: si usuario es técnico (no admin/sup) no puede reasignar técnicos a otros
+        if 'technician_id' in vals and is_tech_user and not (is_admin or is_sup):
+            # permitir solo asignarse a sí mismo
+            tech_rec = self.env['techstore.technician'].search([('user_id', '=', user.id)], limit=1)
+            if not tech_rec or vals.get('technician_id') != tech_rec.id:
+                raise ValidationError(_('Solo el administrador o supervisor puede asignar o cambiar técnicos.'))
+
         if 'state' in vals:
             new_state = vals['state']
             for rec in self:
@@ -114,7 +144,7 @@ class TechStoreMaintenance(models.Model):
         return res
 
     def _create_history_log(self, new_state, comment):
-        self.env['techstore.maintenance.history'].create({
+        self.env['techstore.maintenance.history'].sudo().create({
             'maintenance_id': self.id,
             'old_state': self.state if self.id else 'nuevo',
             'new_state': new_state,

@@ -26,6 +26,8 @@
         'data/techstore.specialty.csv',
         'data/techstore.client.csv',
         'data/techstore.technician.csv',
+        'data/techstore.equipment.type.csv',
+        'data/techstore.equipment.state.csv',
         'data/techstore.equipment.csv',
         'data/techstore.maintenance.csv',
         'data/res_users_technicians.xml',

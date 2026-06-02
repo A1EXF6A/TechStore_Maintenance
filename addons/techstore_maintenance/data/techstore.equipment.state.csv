@@ -1,0 +1,5 @@
+id,code,name
+equipment_state_nuevo,nuevo,Nuevo
+equipment_state_danado,danado,Dañado
+equipment_state_roto,roto,Roto
+equipment_state_usado,usado,Usado

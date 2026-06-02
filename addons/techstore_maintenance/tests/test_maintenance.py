@@ -1,5 +1,6 @@
 # pyrefly: ignore [missing-import]
 from odoo.tests import common
+# pyrefly: ignore [missing-import]
 from odoo.exceptions import ValidationError
 
 class TestTechStoreMaintenance(common.TransactionCase):
@@ -21,9 +22,11 @@ class TestTechStoreMaintenance(common.TransactionCase):
         })
 
         # Create equipment
+        # Create equipment type and equipment
+        cls.equipment_type = cls.env['techstore.equipment.type'].create({'name': 'Laptop'})
         cls.equipment_1 = cls.env['techstore.equipment'].create({
             'client_id': cls.client_1.id,
-            'equipment_type': 'Laptop',
+            'equipment_type_id': cls.equipment_type.id,
             'brand': 'Dell',
             'model': 'Latitude',
             'serial_number': 'SN-TEST-123',
@@ -121,3 +124,46 @@ class TestTechStoreMaintenance(common.TransactionCase):
                 'description': 'Attempting creation for under_repair equipment',
                 'maintenance_type': 'corrective'
             })
+
+    def test_04_equipment_physical_state_default(self):
+        """Test that a newly created equipment defaults state_id to 'nuevo'"""
+        state_nuevo = self.env['techstore.equipment.state'].search([('code', '=', 'nuevo')], limit=1)
+        if not state_nuevo:
+            state_nuevo = self.env['techstore.equipment.state'].create({
+                'code': 'nuevo',
+                'name': 'Nuevo'
+            })
+
+        equipment = self.env['techstore.equipment'].create({
+            'client_id': self.client_1.id,
+            'equipment_type_id': self.equipment_type.id,
+            'brand': 'HP',
+            'model': 'ProBook',
+            'serial_number': 'SN-NEW-999'
+        })
+
+        self.assertEqual(equipment.state_id.id, state_nuevo.id)
+        self.assertEqual(equipment.state_id.code, 'nuevo')
+        self.assertEqual(equipment.state_id.name, 'Nuevo')
+
+    def test_05_technician_cannot_modify_history(self):
+        """Test that a non-admin technician user cannot directly create, write or delete history records and gets clean UserError"""
+        from odoo.exceptions import UserError
+
+        maint = self.env['techstore.maintenance'].create({
+            'client_id': self.client_1.id,
+            'equipment_id': self.equipment_1.id,
+            'technician_id': self.technician_1.id,
+            'description': 'History access check',
+            'maintenance_type': 'corrective'
+        })
+
+        with self.assertRaises(UserError) as cm:
+            self.env['techstore.maintenance.history'].with_user(self.tech_user).create({
+                'maintenance_id': maint.id,
+                'old_state': 'nuevo',
+                'new_state': 'asignado',
+                'comment': 'Direct hack attempt'
+            })
+        self.assertIn("No tienes acceso", str(cm.exception))
+
