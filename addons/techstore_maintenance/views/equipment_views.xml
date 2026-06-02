@@ -7,7 +7,7 @@
         <field name="arch" type="xml">
             <list string="Equipos">
                 <field name="code"/>
-                <field name="partner_id"/>
+                <field name="client_id"/>
                 <field name="equipment_type"/>
                 <field name="brand"/>
                 <field name="model"/>
@@ -40,7 +40,7 @@
                     </div>
                     <group>
                         <group>
-                            <field name="partner_id"/>
+                            <field name="client_id"/>
                             <field name="equipment_type"/>
                             <field name="brand"/>
                             <field name="model"/>
@@ -72,12 +72,12 @@
         <field name="arch" type="xml">
             <search string="Buscar Equipos">
                 <field name="code"/>
-                <field name="partner_id"/>
+                <field name="client_id"/>
                 <field name="serial_number"/>
                 <field name="brand"/>
                 <field name="model"/>
                 <group expand="0" string="Agrupar Por">
-                    <filter string="Cliente" name="group_partner" context="{'group_by': 'partner_id'}"/>
+                    <filter string="Cliente" name="group_partner" context="{'group_by': 'client_id'}"/>
                     <filter string="Tipo" name="group_type" context="{'group_by': 'equipment_type'}"/>
                     <filter string="Estado" name="group_status" context="{'group_by': 'state'}"/>
                 </group>

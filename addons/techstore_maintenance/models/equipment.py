@@ -8,16 +8,8 @@ class TechStoreEquipment(models.Model):
     _rec_name = 'code'
 
     code = fields.Char(string='Código de Equipo', readonly=True, default=lambda self: _('Nuevo'), tracking=True)
-    partner_id = fields.Many2one('res.partner', string='Cliente', required=True, tracking=True)
-    equipment_type = fields.Selection([
-        ('laptop', 'Portátil'),
-        ('desktop', 'Escritorio'),
-        ('tablet', 'Tableta'),
-        ('smartphone', 'Smartphone'),
-        ('printer', 'Impresora'),
-        ('server', 'Servidor'),
-        ('other', 'Otro')
-    ], string='Tipo de Equipo', required=True, tracking=True)
+    client_id = fields.Many2one('techstore.client', string='Cliente', required=True, tracking=True)
+    equipment_type = fields.Char(string='Tipo de Equipo', required=True, tracking=True)
     brand = fields.Char(string='Marca', tracking=True)
     model = fields.Char(string='Modelo', tracking=True)
     serial_number = fields.Char(string='Número de Serie', required=True, tracking=True)

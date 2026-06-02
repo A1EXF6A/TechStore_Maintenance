@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<odoo noupdate="1">
+<odoo noupdate="0">
     <record id="module_techstore_maintenance_category" model="ir.module.category">
         <field name="name">TechStore Mantenimiento</field>
         <field name="description">Gestión de mantenimientos técnicos, técnicos y equipos para TechStore.</field>
@@ -25,11 +25,11 @@
         <field name="users" eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]"/>
     </record>
 
-    <!-- Regla de registro: Técnicos solo ven sus mantenimientos asignados -->
+    <!-- Regla de registro: Técnicos solo ven sus mantenimientos asignados o creados por ellos -->
     <record id="rule_techstore_maintenance_technician" model="ir.rule">
-        <field name="name">Técnicos: Ver solo mantenimientos asignados</field>
+        <field name="name">Técnicos: Ver solo mantenimientos asignados o creados</field>
         <field name="model_id" ref="model_techstore_maintenance"/>
-        <field name="domain_force">[('technician_id.user_id', '=', user.id)]</field>
+        <field name="domain_force">['|', ('technician_id.user_id', '=', user.id), ('create_uid', '=', user.id)]</field>
         <field name="groups" eval="[(4, ref('group_techstore_technician'))]"/>
         <field name="perm_read" eval="True"/>
         <field name="perm_write" eval="True"/>
@@ -43,5 +43,10 @@
         <field name="model_id" ref="model_techstore_maintenance"/>
         <field name="domain_force">[(1, '=', 1)]</field>
         <field name="groups" eval="[(4, ref('group_techstore_supervisor')), (4, ref('group_techstore_admin'))]"/>
+    </record>
+
+    <!-- Restricción: El Técnico no puede ver el módulo de aplicaciones (Apps) -->
+    <record id="base.menu_management" model="ir.ui.menu">
+        <field name="groups_id" eval="[(3, ref('techstore_maintenance.group_techstore_technician'))]"/>
     </record>
 </odoo>

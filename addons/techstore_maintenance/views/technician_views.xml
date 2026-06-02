@@ -9,7 +9,7 @@
                 <field name="name"/>
                 <field name="identification"/>
                 <field name="phone"/>
-                <field name="specialty"/>
+                <field name="specialty_id"/>
                 <field name="user_id" widget="many2one_avatar_user" optional="show"/>
                 <field name="maintenance_count"/>
                 <field name="workload_level" widget="badge"
@@ -51,7 +51,7 @@
                             <field name="identification"/>
                             <field name="phone"/>
                             <field name="email"/>
-                            <field name="specialty"/>
+                            <field name="specialty_id"/>
                         </group>
                         <group string="Acceso al Sistema">
                             <field name="user_id" widget="many2one_avatar_user" options="{'no_create': True}"/>
@@ -71,7 +71,7 @@
                             <field name="maintenance_ids" readonly="1">
                                 <list>
                                     <field name="number"/>
-                                    <field name="partner_id"/>
+                                    <field name="client_id"/>
                                     <field name="state"/>
                                     <field name="priority"/>
                                 </list>
@@ -92,14 +92,14 @@
             <search string="Buscar Técnicos">
                 <field name="name"/>
                 <field name="identification"/>
-                <field name="specialty"/>
+                <field name="specialty_id"/>
                 <field name="user_id"/>
                 <filter string="Activos" name="active" domain="[('active', '=', True)]"/>
                 <filter string="Inactivos" name="inactive" domain="[('active', '=', False)]"/>
                 <filter string="Con Usuario Vinculado" name="with_user" domain="[('user_id', '!=', False)]"/>
                 <filter string="Sin Usuario Vinculado" name="without_user" domain="[('user_id', '=', False)]"/>
                 <group expand="0" string="Agrupar Por">
-                    <filter string="Especialidad" name="group_specialty" context="{'group_by': 'specialty'}"/>
+                    <filter string="Especialidad" name="group_specialty" context="{'group_by': 'specialty_id'}"/>
                     <filter string="Nivel de Carga" name="group_workload" context="{'group_by': 'workload_level'}"/>
                 </group>
             </search>

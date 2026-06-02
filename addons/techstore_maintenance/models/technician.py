@@ -11,12 +11,7 @@ class TechStoreTechnician(models.Model):
     identification = fields.Char(string='Identificación', required=True, tracking=True)
     phone = fields.Char(string='Teléfono', required=True, tracking=True)
     email = fields.Char(string='Correo Electrónico', tracking=True)
-    specialty = fields.Selection([
-        ('hardware', 'Hardware'),
-        ('software', 'Software'),
-        ('networking', 'Redes'),
-        ('general', 'Soporte Técnico General')
-    ], string='Especialidad', default='general', tracking=True)
+    specialty_id = fields.Many2one('techstore.specialty', string='Especialidad', tracking=True)
     active = fields.Boolean(default=True, string='Activo')
     user_id = fields.Many2one('res.users', string='Usuario Odoo Vinculado', tracking=True)
     maintenance_ids = fields.One2many('techstore.maintenance', 'technician_id', string='Mantenimientos')
@@ -56,11 +51,49 @@ class TechStoreTechnician(models.Model):
             if rec.email and not re.match(r"[^@]+@[^@]+\.[^@]+", rec.email):
                 raise ValidationError(_("Por favor ingrese una dirección de correo electrónico válida."))
 
+    @api.constrains('identification')
+    def _check_identification(self):
+        for rec in self:
+            if not rec.identification:
+                continue
+            cedula = rec.identification.strip()
+            if len(cedula) != 10 or not cedula.isdigit():
+                raise ValidationError(_("La identificación (cédula) debe tener exactamente 10 dígitos."))
+            
+            province = int(cedula[:2])
+            if not (1 <= province <= 24 or province == 30):
+                raise ValidationError(_("La identificación no corresponde a una provincia ecuatoriana válida (primeros dos dígitos de 01 a 24, o 30)."))
+            
+            third_digit = int(cedula[2])
+            if third_digit >= 6:
+                raise ValidationError(_("El tercer dígito de la cédula debe ser menor a 6."))
+            
+            coefs = [2, 1, 2, 1, 2, 1, 2, 1, 2]
+            total = 0
+            for i in range(9):
+                val = int(cedula[i]) * coefs[i]
+                if val >= 10:
+                    val -= 9
+                total += val
+            
+            check_digit = int(cedula[9])
+            calculated_check = 10 - (total % 10)
+            if calculated_check == 10:
+                calculated_check = 0
+                
+            if check_digit != calculated_check:
+                raise ValidationError(_("La identificación ingresada no es una cédula ecuatoriana válida por algoritmo de módulo 10."))
+
     @api.constrains('phone')
     def _check_phone(self):
         for rec in self:
             if not rec.phone:
                 raise ValidationError(_("El número de teléfono es obligatorio."))
+            # Extract digits only to check exact length of 10
+            digits_phone = ''.join(c for c in rec.phone if c.isdigit())
+            if len(digits_phone) != 10:
+                raise ValidationError(_("El número de teléfono debe contener exactamente 10 dígitos (por ejemplo, 0999999999)."))
+
 
     @api.onchange('user_id')
     def _onchange_user_id(self):

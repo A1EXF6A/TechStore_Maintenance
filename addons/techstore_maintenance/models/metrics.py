@@ -10,7 +10,7 @@ class TechStoreMaintenanceMetrics(models.Model):
 
     maintenance_id = fields.Many2one('techstore.maintenance', string='Mantenimiento', required=True, ondelete='cascade')
     technician_id = fields.Many2one('techstore.technician', string='Técnico', related='maintenance_id.technician_id', store=True)
-    partner_id = fields.Many2one('res.partner', string='Cliente', related='maintenance_id.partner_id', store=True)
+    client_id = fields.Many2one('techstore.client', string='Cliente', related='maintenance_id.client_id', store=True)
     maintenance_type = fields.Selection(related='maintenance_id.maintenance_type', store=True, string='Tipo de Mantenimiento')
 
     attention_time = fields.Float(string='Tiempo de Atención (Horas)', compute='_compute_metrics', store=True)

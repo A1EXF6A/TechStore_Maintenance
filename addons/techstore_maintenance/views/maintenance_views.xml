@@ -9,7 +9,7 @@
                   decoration-danger="priority == '3'"
                   decoration-warning="priority == '2'">
                 <field name="number"/>
-                <field name="partner_id"/>
+                <field name="client_id"/>
                 <field name="equipment_id"/>
                 <field name="technician_id"/>
                 <field name="request_date"/>
@@ -31,7 +31,7 @@
         <field name="arch" type="xml">
             <kanban default_group_by="state" quick_create="false">
                 <field name="number"/>
-                <field name="partner_id"/>
+                <field name="client_id"/>
                 <field name="equipment_id"/>
                 <field name="priority"/>
                 <field name="state"/>
@@ -43,7 +43,7 @@
                                     <field name="number"/>
                                 </strong>
                                 <div>
-                                    <span>Cliente: </span><field name="partner_id"/>
+                                    <span>Cliente: </span><field name="client_id"/>
                                 </div>
                                 <div>
                                     <span>Equipo: </span><field name="equipment_id"/>
@@ -89,8 +89,8 @@
                     </div>
                     <group>
                         <group string="Cliente y Equipo">
-                            <field name="partner_id"/>
-                            <field name="equipment_id"/>
+                            <field name="client_id"/>
+                            <field name="equipment_id" domain="[('client_id', '=', client_id), ('state', '=', 'received')]"/>
                             <field name="technician_id" options="{'no_create': True}"/>
                         </group>
                         <group string="Planificación">
@@ -151,7 +151,7 @@
         <field name="arch" type="xml">
             <search string="Buscar Mantenimientos">
                 <field name="number"/>
-                <field name="partner_id"/>
+                <field name="client_id"/>
                 <field name="equipment_id"/>
                 <field name="technician_id"/>
                 <filter string="Mis Mantenimientos" name="my_maintenances" domain="[('technician_id.user_id', '=', uid)]"/>
@@ -160,7 +160,7 @@
                 <group expand="0" string="Agrupar Por">
                     <filter string="Estado" name="group_status" context="{'group_by': 'state'}"/>
                     <filter string="Técnico" name="group_technician" context="{'group_by': 'technician_id'}"/>
-                    <filter string="Cliente" name="group_client" context="{'group_by': 'partner_id'}"/>
+                    <filter string="Cliente" name="group_client" context="{'group_by': 'client_id'}"/>
                     <filter string="Prioridad" name="group_priority" context="{'group_by': 'priority'}"/>
                     <filter string="Tipo de Mantenimiento" name="group_type" context="{'group_by': 'maintenance_type'}"/>
                 </group>

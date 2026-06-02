@@ -1,5 +1,6 @@
 # pyrefly: ignore [missing-import]
 from odoo import models, fields, api, _
+from odoo.exceptions import ValidationError
 from datetime import datetime
 
 class TechStoreMaintenance(models.Model):
@@ -9,8 +10,8 @@ class TechStoreMaintenance(models.Model):
     _rec_name = 'number'
 
     number = fields.Char(string='Número de Mantenimiento', readonly=True, default=lambda self: _('Nuevo'), tracking=True)
-    partner_id = fields.Many2one('res.partner', string='Cliente', required=True, tracking=True)
-    equipment_id = fields.Many2one('techstore.equipment', string='Equipo', required=True, tracking=True, domain="[('partner_id', '=', partner_id)]")
+    client_id = fields.Many2one('techstore.client', string='Cliente', required=True, tracking=True)
+    equipment_id = fields.Many2one('techstore.equipment', string='Equipo', required=True, tracking=True, domain="[('client_id', '=', client_id)]")
     technician_id = fields.Many2one('techstore.technician', string='Técnico Asignado', tracking=True)
 
     request_date = fields.Datetime(string='Fecha de Solicitud', default=fields.Datetime.now, tracking=True)
@@ -78,6 +79,8 @@ class TechStoreMaintenance(models.Model):
         for record in records:
             record._create_history_log('nuevo', 'Mantenimiento Creado')
             self.env['techstore.maintenance.metrics'].create({'maintenance_id': record.id})
+            if record.equipment_id:
+                record.equipment_id.state = 'received'
         return records
 
     def write(self, vals):
@@ -93,10 +96,20 @@ class TechStoreMaintenance(models.Model):
         res = super(TechStoreMaintenance, self).write(vals)
 
         if 'state' in vals:
-            if vals['state'] == 'en_proceso':
+            new_state = vals['state']
+            if new_state == 'en_proceso':
                 self.filtered(lambda r: not r.start_date).start_date = fields.Datetime.now()
-            elif vals['state'] == 'finalizado':
+            elif new_state == 'finalizado':
                 self.filtered(lambda r: not r.end_date).end_date = fields.Datetime.now()
+
+            for rec in self:
+                if rec.equipment_id:
+                    if new_state in ('nuevo', 'asignado'):
+                        rec.equipment_id.state = 'received'
+                    elif new_state in ('en_proceso', 'pendiente'):
+                        rec.equipment_id.state = 'under_repair'
+                    elif new_state == 'finalizado':
+                        rec.equipment_id.state = 'repaired'
 
         return res
 
@@ -118,3 +131,15 @@ class TechStoreMaintenance(models.Model):
                     'message': _("Ha seleccionado prioridad Crítica. Por favor asegure atención inmediata a este mantenimiento."),
                 }
             }
+
+    @api.constrains('equipment_id')
+    def _check_equipment_received(self):
+        for rec in self:
+            if rec.equipment_id and rec.equipment_id.state != 'received':
+                user = self.env.user
+                is_tech = user.has_group('techstore_maintenance.group_techstore_technician')
+                is_admin = user.has_group('techstore_maintenance.group_techstore_admin')
+                is_sup = user.has_group('techstore_maintenance.group_techstore_supervisor')
+                if is_tech and not (is_admin or is_sup):
+                    raise ValidationError(_("El técnico solo puede registrar mantenimientos para equipos que estén en estado 'Recibido'."))
+
