@@ -7,3 +7,5 @@ from . import equipment_state
 from . import maintenance
 from . import history
 from . import metrics
+from . import state_wizard
+

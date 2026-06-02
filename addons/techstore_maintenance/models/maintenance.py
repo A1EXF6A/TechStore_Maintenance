@@ -102,6 +102,16 @@ class TechStoreMaintenance(models.Model):
         return records
 
     def write(self, vals):
+        for rec in self:
+            if rec.state in ('finalizado', 'cancelado') and not self.env.su:
+                user_fields = {
+                    'client_id', 'equipment_id', 'technician_id', 'maintenance_type', 'priority',
+                    'description', 'diagnosis', 'solution', 'estimated_cost', 'final_cost',
+                    'estimated_time', 'customer_satisfaction', 'observations', 'active'
+                }
+                if any(field in vals for field in user_fields):
+                    raise ValidationError(_("No se puede modificar un mantenimiento que se encuentra en estado Finalizado o Cancelado."))
+
         user = self.env.user
         is_tech_user = user.has_group('techstore_maintenance.group_techstore_technician')
         is_admin = user.has_group('techstore_maintenance.group_techstore_admin')
@@ -144,12 +154,13 @@ class TechStoreMaintenance(models.Model):
         return res
 
     def _create_history_log(self, new_state, comment):
+        custom_comment = self.env.context.get('custom_comment')
         self.env['techstore.maintenance.history'].sudo().create({
             'maintenance_id': self.id,
             'old_state': self.state if self.id else 'nuevo',
             'new_state': new_state,
             'user_id': self.env.user.id,
-            'comment': comment
+            'comment': custom_comment or comment
         })
 
     @api.onchange('priority')
@@ -172,4 +183,37 @@ class TechStoreMaintenance(models.Model):
                 is_sup = user.has_group('techstore_maintenance.group_techstore_supervisor')
                 if is_tech and not (is_admin or is_sup):
                     raise ValidationError(_("El técnico solo puede registrar mantenimientos para equipos que estén en estado 'Recibido'."))
+
+    def action_to_asignado(self):
+        return self._open_state_wizard('asignado', _('Mantenimiento Asignado'))
+
+    def action_to_en_proceso(self):
+        return self._open_state_wizard('en_proceso', _('Mantenimiento En Proceso'))
+
+    def action_to_pendiente(self):
+        return self._open_state_wizard('pendiente', _('Mantenimiento Pendiente'))
+
+    def action_to_finalizado(self):
+        return self._open_state_wizard('finalizado', _('Mantenimiento Finalizado'))
+
+    def action_to_cancelado(self):
+        return self._open_state_wizard('cancelado', _('Mantenimiento Cancelado'))
+
+    def _open_state_wizard(self, target_state, default_comment):
+        self.ensure_one()
+        wizard = self.env['techstore.maintenance.state.wizard'].create({
+            'maintenance_id': self.id,
+            'old_state': self.state,
+            'new_state': target_state,
+            'comment': default_comment
+        })
+        return {
+            'name': _('Historial de Estados'),
+            'type': 'ir.actions.act_window',
+            'res_model': 'techstore.maintenance.state.wizard',
+            'view_mode': 'form',
+            'res_id': wizard.id,
+            'target': 'new',
+        }
+
 

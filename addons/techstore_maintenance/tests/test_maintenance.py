@@ -167,3 +167,55 @@ class TestTechStoreMaintenance(common.TransactionCase):
             })
         self.assertIn("No tienes acceso", str(cm.exception))
 
+    def test_06_block_edit_when_finalizado_or_cancelado(self):
+        """Test that a maintenance cannot be edited once it is in finalizado or cancelado status"""
+        maint = self.env['techstore.maintenance'].create({
+            'client_id': self.client_1.id,
+            'equipment_id': self.equipment_1.id,
+            'description': 'Maintenance block check',
+            'maintenance_type': 'corrective'
+        })
+
+        # Transition to finalizado
+        maint.state = 'finalizado'
+        self.assertEqual(maint.state, 'finalizado')
+
+        # Trying to edit description should raise a ValidationError
+        with self.assertRaises(ValidationError) as cm:
+            maint.write({
+                'description': 'Attempting edit after completion'
+            })
+        self.assertIn("No se puede modificar un mantenimiento", str(cm.exception))
+
+    def test_07_state_wizard_comment_sync(self):
+        """Test that transition wizard logs customized comments into history log successfully"""
+        maint = self.env['techstore.maintenance'].create({
+            'client_id': self.client_1.id,
+            'equipment_id': self.equipment_1.id,
+            'description': 'Wizard transition test',
+            'maintenance_type': 'corrective'
+        })
+
+        # Create transition wizard
+        wizard = self.env['techstore.maintenance.state.wizard'].create({
+            'maintenance_id': maint.id,
+            'old_state': 'nuevo',
+            'new_state': 'asignado',
+            'comment': 'Este es un comentario de transicion personalizado'
+        })
+
+        # Confirm wizard action
+        wizard.action_confirm()
+
+        # Ensure state updated
+        self.assertEqual(maint.state, 'asignado')
+
+        # Ensure history log has the correct customized comment
+        history = self.env['techstore.maintenance.history'].search([
+            ('maintenance_id', '=', maint.id),
+            ('new_state', '=', 'asignado')
+        ], limit=1)
+        self.assertTrue(history)
+        self.assertEqual(history.comment, 'Este es un comentario de transicion personalizado')
+
+

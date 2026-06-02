@@ -1,5 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <!-- Vista Formulario del Asistente de Cambio de Estado -->
+    <record id="view_techstore_maintenance_state_wizard_form" model="ir.ui.view">
+        <field name="name">techstore.maintenance.state.wizard.form</field>
+        <field name="model">techstore.maintenance.state.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Historial de Estados">
+                <sheet>
+                    <group>
+                        <field name="maintenance_id"/>
+                        <field name="old_state"/>
+                        <field name="new_state"/>
+                        <field name="change_date"/>
+                        <field name="user_id"/>
+                        <field name="comment"/>
+                    </group>
+                </sheet>
+                <footer>
+                    <button name="action_confirm" string="Confirmar" type="object" class="oe_highlight"/>
+                    <button string="Cancelar" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
     <!-- Vista Lista -->
     <record id="view_techstore_maintenance_tree" model="ir.ui.view">
         <field name="name">techstore.maintenance.tree</field>
@@ -71,15 +95,34 @@
         <field name="arch" type="xml">
             <form string="Solicitud de Mantenimiento">
                 <header>
-                    <button name="%(techstore_maintenance.action_techstore_technician)d"
-                            type="action"
-                            string="Asignar Técnico"
+                    <button name="action_to_asignado"
+                            type="object"
+                            string="Asignar"
                             invisible="state != 'nuevo'"
                             class="oe_highlight"
-                            groups="techstore_maintenance.group_techstore_supervisor"/>
+                            groups="techstore_maintenance.group_techstore_supervisor,techstore_maintenance.group_techstore_admin"/>
+                    <button name="action_to_en_proceso"
+                            type="object"
+                            string="Iniciar Proceso"
+                            invisible="state not in ('asignado', 'pendiente')"
+                            class="oe_highlight"/>
+                    <button name="action_to_pendiente"
+                            type="object"
+                            string="Poner en Pendiente"
+                            invisible="state != 'en_proceso'"
+                            class="btn-secondary"/>
+                    <button name="action_to_finalizado"
+                            type="object"
+                            string="Finalizar"
+                            invisible="state not in ('en_proceso', 'pendiente')"
+                            class="oe_highlight"/>
+                    <button name="action_to_cancelado"
+                            type="object"
+                            string="Cancelar"
+                            invisible="state in ('finalizado', 'cancelado')"
+                            class="btn-secondary"/>
                     <field name="state" widget="statusbar"
-                           statusbar_visible="nuevo,asignado,en_proceso,pendiente,finalizado,cancelado"
-                           clickable="True"/>
+                           statusbar_visible="nuevo,asignado,en_proceso,pendiente,finalizado,cancelado"/>
                 </header>
                 <sheet>
                     <div class="oe_title">
