@@ -4,61 +4,61 @@ from datetime import datetime
 
 class TechStoreMaintenance(models.Model):
     _name = 'techstore.maintenance'
-    _description = 'TechStore Maintenance Request'
+    _description = 'Solicitud de Mantenimiento TechStore'
     _inherit = ['mail.thread', 'mail.activity.mixin']
     _rec_name = 'number'
 
-    number = fields.Char(string='Maintenance Number', readonly=True, default=lambda self: _('New'), tracking=True)
-    partner_id = fields.Many2one('res.partner', string='Client', required=True, tracking=True)
-    equipment_id = fields.Many2one('techstore.equipment', string='Equipment', required=True, tracking=True, domain="[('partner_id', '=', partner_id)]")
-    technician_id = fields.Many2one('techstore.technician', string='Assigned Technician', tracking=True)
-    
-    request_date = fields.Datetime(string='Request Date', default=fields.Datetime.now, tracking=True)
-    start_date = fields.Datetime(string='Start Date', tracking=True)
-    end_date = fields.Datetime(string='End Date', tracking=True)
-    
+    number = fields.Char(string='Número de Mantenimiento', readonly=True, default=lambda self: _('Nuevo'), tracking=True)
+    partner_id = fields.Many2one('res.partner', string='Cliente', required=True, tracking=True)
+    equipment_id = fields.Many2one('techstore.equipment', string='Equipo', required=True, tracking=True, domain="[('partner_id', '=', partner_id)]")
+    technician_id = fields.Many2one('techstore.technician', string='Técnico Asignado', tracking=True)
+
+    request_date = fields.Datetime(string='Fecha de Solicitud', default=fields.Datetime.now, tracking=True)
+    start_date = fields.Datetime(string='Fecha de Inicio', tracking=True)
+    end_date = fields.Datetime(string='Fecha de Fin', tracking=True)
+
     maintenance_type = fields.Selection([
-        ('preventive', 'Preventive'),
-        ('corrective', 'Corrective'),
-        ('diagnostic', 'Diagnostic')
-    ], string='Maintenance Type', default='preventive', required=True, tracking=True)
-    
+        ('preventive', 'Preventivo'),
+        ('corrective', 'Correctivo'),
+        ('diagnostic', 'Diagnóstico')
+    ], string='Tipo de Mantenimiento', default='preventive', required=True, tracking=True)
+
     priority = fields.Selection([
-        ('0', 'Low'),
-        ('1', 'Medium'),
-        ('2', 'High'),
-        ('3', 'Critical')
-    ], string='Priority', default='1', tracking=True)
-    
+        ('0', 'Baja'),
+        ('1', 'Media'),
+        ('2', 'Alta'),
+        ('3', 'Crítica')
+    ], string='Prioridad', default='1', tracking=True)
+
     state = fields.Selection([
-        ('nuevo', 'New'),
-        ('asignado', 'Assigned'),
-        ('en_proceso', 'In Progress'),
-        ('pendiente', 'Pending'),
-        ('finalizado', 'Finished'),
-        ('cancelado', 'Cancelled')
-    ], string='Status', default='nuevo', tracking=True)
-    
-    description = fields.Text(string='Problem Description', required=True)
-    diagnosis = fields.Text(string='Technical Diagnosis')
-    solution = fields.Text(string='Applied Solution')
-    
-    estimated_cost = fields.Float(string='Estimated Cost')
-    final_cost = fields.Float(string='Final Cost')
-    
-    estimated_time = fields.Float(string='Estimated Time (Hours)')
-    real_time = fields.Float(string='Real Time Employed (Hours)', compute='_compute_real_time', store=True)
-    
+        ('nuevo', 'Nuevo'),
+        ('asignado', 'Asignado'),
+        ('en_proceso', 'En Proceso'),
+        ('pendiente', 'Pendiente'),
+        ('finalizado', 'Finalizado'),
+        ('cancelado', 'Cancelado')
+    ], string='Estado', default='nuevo', tracking=True)
+
+    description = fields.Text(string='Descripción del Problema', required=True)
+    diagnosis = fields.Text(string='Diagnóstico Técnico')
+    solution = fields.Text(string='Solución Aplicada')
+
+    estimated_cost = fields.Float(string='Costo Estimado')
+    final_cost = fields.Float(string='Costo Final')
+
+    estimated_time = fields.Float(string='Tiempo Estimado (Horas)')
+    real_time = fields.Float(string='Tiempo Real Empleado (Horas)', compute='_compute_real_time', store=True)
+
     customer_satisfaction = fields.Selection([
-        ('1', 'Poor'),
-        ('2', 'Fair'),
-        ('3', 'Good'),
-        ('4', 'Excellent')
-    ], string='Customer Satisfaction')
-    
-    observations = fields.Text(string='Observations')
-    active = fields.Boolean(default=True)
-    history_ids = fields.One2many('techstore.maintenance.history', 'maintenance_id', string='Status History')
+        ('1', 'Malo'),
+        ('2', 'Regular'),
+        ('3', 'Bueno'),
+        ('4', 'Excelente')
+    ], string='Satisfacción del Cliente')
+
+    observations = fields.Text(string='Observaciones')
+    active = fields.Boolean(default=True, string='Activo')
+    history_ids = fields.One2many('techstore.maintenance.history', 'maintenance_id', string='Historial de Estados')
 
     @api.depends('start_date', 'end_date')
     def _compute_real_time(self):
@@ -72,11 +72,11 @@ class TechStoreMaintenance(models.Model):
     @api.model_create_multi
     def create(self, vals_list):
         for vals in vals_list:
-            if vals.get('number', _('New')) == _('New'):
-                vals['number'] = self.env['ir.sequence'].next_by_code('techstore.maintenance') or _('New')
+            if vals.get('number', _('Nuevo')) == _('Nuevo'):
+                vals['number'] = self.env['ir.sequence'].next_by_code('techstore.maintenance') or _('Nuevo')
         records = super(TechStoreMaintenance, self).create(vals_list)
         for record in records:
-            record._create_history_log('nuevo', 'Maintenance Created')
+            record._create_history_log('nuevo', 'Mantenimiento Creado')
             self.env['techstore.maintenance.metrics'].create({'maintenance_id': record.id})
         return records
 
@@ -85,22 +85,19 @@ class TechStoreMaintenance(models.Model):
             new_state = vals['state']
             for rec in self:
                 if rec.state != new_state:
-                    rec._create_history_log(new_state, f"Status changed from {rec.state} to {new_state}")
-                    
+                    rec._create_history_log(new_state, f"Estado cambiado de {rec.state} a {new_state}")
+
                     if new_state == 'en_proceso' and not rec.start_date:
-                        # We use super().write on individual records if we need per-record logic in vals
-                        # or just set the field directly on the record if it's already created.
-                        # Since we are in write, we can just update the record after super()
                         pass
-                        
+
         res = super(TechStoreMaintenance, self).write(vals)
-        
+
         if 'state' in vals:
             if vals['state'] == 'en_proceso':
                 self.filtered(lambda r: not r.start_date).start_date = fields.Datetime.now()
             elif vals['state'] == 'finalizado':
                 self.filtered(lambda r: not r.end_date).end_date = fields.Datetime.now()
-                
+
         return res
 
     def _create_history_log(self, new_state, comment):
@@ -117,7 +114,7 @@ class TechStoreMaintenance(models.Model):
         if self.priority == '3':
             return {
                 'warning': {
-                    'title': _("Critical Priority"),
-                    'message': _("You have selected a Critical priority. Please ensure immediate attention to this maintenance."),
+                    'title': _("Prioridad Crítica"),
+                    'message': _("Ha seleccionado prioridad Crítica. Por favor asegure atención inmediata a este mantenimiento."),
                 }
             }
