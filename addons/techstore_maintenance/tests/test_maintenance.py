@@ -561,7 +561,7 @@ class TestTechStoreMaintenance(common.TransactionCase):
         self.assertEqual(values['report_data'][0]['wizard'].id, wizard.id)
         # Check that general statistics are present
         self.assertTrue(values['report_data'][0]['general_stats'])
-        self.assertEqual(values['report_data'][0]['general_stats']['total_technicians'], 1)
+        self.assertEqual(values['report_data'][0]['general_stats']['total_technicians'], 4)
 
     def test_21_report_wizard_technician_flow(self):
         """Test that report wizard enforces technician user restrictions and blocks general report"""

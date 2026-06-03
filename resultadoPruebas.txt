@@ -1,0 +1,30 @@
+RESULTADO DE PRUEBAS
+
+Repositorio: TechStore_Maintenance
+Módulo: techstore_maintenance
+Fecha: 2026-06-03
+
+Resumen:
+- Total de pruebas: 25
+- Fallos: 0
+- Errores: 0
+- Porcentaje de error: 0.00%
+
+Tiempos:
+- Creación del contenedor: Container techstore_maintenance-odoo-run-256db873bce9 Created
+- Carga del módulo techstore_maintenance: 3.07s
+- Carga total de módulos: 3.33s
+- Carga del registro: 4.990s
+- Ejecución del post-test: 0.10s
+
+Conteos desde la base de datos:
+- Usuarios totales (res_users): 10
+- Técnicos (techstore_technician): 3
+
+Evidencia:
+- tests_final.log
+- tests_final_utf8.log
+
+Salida clave:
+0 failed, 0 error(s) of 25 tests when loading database 'techstore_test'
+0 post-tests in 0.10s, 0 queries

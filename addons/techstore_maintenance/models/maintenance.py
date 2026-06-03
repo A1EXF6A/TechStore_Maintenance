@@ -122,7 +122,7 @@ class TechStoreMaintenance(models.Model):
 
     def write(self, vals):
         for rec in self:
-            if rec.state in ('finalizado', 'cancelado') and not self.env.su:
+            if rec.state in ('finalizado', 'cancelado') and not self.env.su and not self.env.context.get('skip_finalizado_lock'):
                 user_fields = {
                     'client_id', 'equipment_id', 'technician_id', 'maintenance_type', 'priority',
                     'description', 'diagnosis', 'solution', 'estimated_cost', 'final_cost',
@@ -169,7 +169,7 @@ class TechStoreMaintenance(models.Model):
             if new_state == 'en_proceso':
                 self.filtered(lambda r: not r.start_date).start_date = fields.Datetime.now()
             elif new_state == 'finalizado':
-                self.filtered(lambda r: not r.end_date).end_date = fields.Datetime.now()
+                self.filtered(lambda r: not r.end_date).with_context(skip_finalizado_lock=True).end_date = fields.Datetime.now()
 
             for rec in self:
                 if rec.equipment_id:

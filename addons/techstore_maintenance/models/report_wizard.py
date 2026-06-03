@@ -89,7 +89,9 @@ class TechStoreMaintenanceReportWizard(models.TransientModel):
 
     def action_generate_pdf(self):
         self.ensure_one()
-        return self.env.ref('techstore_maintenance.action_report_techstore_maintenance').report_action(self)
+        action = self.env.ref('techstore_maintenance.action_report_techstore_maintenance').report_action(self)
+        action['report_name'] = 'techstore_maintenance.report_maintenance_template'
+        return action
 
     def action_generate_excel(self):
         self.ensure_one()

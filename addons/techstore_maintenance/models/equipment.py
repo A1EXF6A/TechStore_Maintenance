@@ -16,7 +16,7 @@ class TechStoreEquipment(models.Model):
     serial_number = fields.Char(string='Número de Serie', required=True, tracking=True)
     receipt_date = fields.Date(string='Fecha de Recepción', default=fields.Date.context_today, tracking=True)
     has_warranty = fields.Boolean(string='Tiene Garantía', default=False)
-    problem_description = fields.Text(string='Descripción del Problema', required=True, tracking=True)
+    problem_description = fields.Text(string='Descripción del Problema', tracking=True)
     observations = fields.Text(string='Observaciones')
     # Keep a selection for workflow/statusbar compatibility but provide a Many2one model
     state = fields.Selection([
