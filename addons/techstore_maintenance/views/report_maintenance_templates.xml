@@ -1,0 +1,378 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Registro del Reporte PDF -->
+    <record id="action_report_techstore_maintenance" model="ir.actions.report">
+        <field name="name">Reporte de Mantenimientos</field>
+        <field name="model">techstore.maintenance.report.wizard</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">techstore_maintenance.report_maintenance_template</field>
+        <field name="report_file">techstore_maintenance.report_maintenance_template</field>
+        <field name="print_report_name">'Reporte_Mantenimientos'</field>
+        <field name="binding_model_id" eval="False"/>
+    </record>
+
+    <!-- Plantilla QWeb HTML del Reporte -->
+    <template id="report_maintenance_template">
+        <t t-call="web.html_container">
+            <t t-foreach="report_data" t-as="data">
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        <style>
+                            .report-title {
+                                font-size: 24px;
+                                font-weight: bold;
+                                color: #1f4e79;
+                                border-bottom: 2px solid #1f4e79;
+                                padding-bottom: 5px;
+                                text-align: center;
+                                text-transform: uppercase;
+                            }
+                            .section-header {
+                                font-size: 15px;
+                                font-weight: bold;
+                                color: #1f4e79;
+                                margin-top: 25px;
+                                margin-bottom: 10px;
+                                border-bottom: 1px solid #1f4e79;
+                                padding-bottom: 3px;
+                            }
+                            .kpi-card {
+                                background-color: #f8f9fa;
+                                border: 1px solid #dee2e6;
+                                border-radius: 4px;
+                                padding: 12px;
+                                text-align: center;
+                                margin-bottom: 15px;
+                            }
+                            .kpi-title {
+                                font-size: 10px;
+                                color: #6c757d;
+                                font-weight: bold;
+                                letter-spacing: 0.5px;
+                                text-transform: uppercase;
+                            }
+                            .kpi-value {
+                                font-size: 18px;
+                                font-weight: bold;
+                                color: #2f5597;
+                                margin-top: 3px;
+                            }
+                            .table-custom th {
+                                background-color: #2f5597;
+                                color: white;
+                                font-weight: bold;
+                                text-align: center;
+                                font-size: 10px;
+                            }
+                            .table-custom td {
+                                font-size: 10px;
+                                vertical-align: middle;
+                            }
+                            .badge-custom {
+                                font-size: 9px;
+                                padding: 3px 6px;
+                                border-radius: 10px;
+                                font-weight: bold;
+                                display: inline-block;
+                                text-transform: uppercase;
+                            }
+                            .badge-nuevo { background-color: #e3f2fd; color: #0d47a1; }
+                            .badge-asignado { background-color: #fff3e0; color: #e65100; }
+                            .badge-en_proceso { background-color: #fffde7; color: #f57f17; }
+                            .badge-pendiente { background-color: #fbe9e7; color: #d84315; }
+                            .badge-finalizado { background-color: #e8f5e9; color: #1b5e20; }
+                            .badge-cancelado { background-color: #efebe9; color: #4e342e; }
+
+                            /* Carga laboral */
+                            .badge-carga-low { background-color: #e8f5e9; color: #1b5e20; }
+                            .badge-carga-medium { background-color: #e3f2fd; color: #0d47a1; }
+                            .badge-carga-high { background-color: #fff3e0; color: #e65100; }
+                            .badge-carga-critical { background-color: #fbe9e7; color: #d84315; }
+                        </style>
+
+                        <t t-if="data['wizard'].report_type == 'general'">
+                            <!-- ================= REPORT: GENERAL SYSTEM ================= -->
+                            <!-- Título principal -->
+                            <div class="row mb-4 mt-2">
+                                <div class="col-12">
+                                    <div class="report-title">Reporte Consolidado del Sistema</div>
+                                </div>
+                            </div>
+
+                            <!-- Metadatos de Emisión -->
+                            <div class="row mb-3" style="font-size: 11px;">
+                                <div class="col-6">
+                                    <strong>Fecha de Emisión:</strong> 
+                                    <span t-esc="context_timestamp(datetime.datetime.now()).strftime('%Y-%m-%d %H:%M:%S')"/><br/>
+                                    <strong>Generado por:</strong> <span t-esc="user.name"/><br/>
+                                </div>
+                                <div class="col-6 text-right">
+                                    <strong>Filtro Temporal:</strong><br/>
+                                    <t t-if="data['wizard'].start_date">
+                                        <span>Desde: <t t-esc="data['wizard'].start_date"/></span>
+                                    </t>
+                                    <t t-if="data['wizard'].end_date">
+                                        <span>Hasta: <t t-esc="data['wizard'].end_date"/></span>
+                                    </t>
+                                    <t t-if="not data['wizard'].start_date and not data['wizard'].end_date">
+                                        <span>Todo el Historial</span>
+                                    </t>
+                                </div>
+                            </div>
+
+                            <!-- Tarjetas KPI -->
+                            <div class="row mb-2">
+                                <div class="col-3">
+                                    <div class="kpi-card">
+                                        <div class="kpi-title">Mantenimientos</div>
+                                        <div class="kpi-value"><t t-esc="data['total_count']"/></div>
+                                    </div>
+                                </div>
+                                <div class="col-3">
+                                    <div class="kpi-card">
+                                        <div class="kpi-title">Equipos Registrados</div>
+                                        <div class="kpi-value"><t t-esc="data['general_stats']['total_equipments']"/></div>
+                                    </div>
+                                </div>
+                                <div class="col-3">
+                                    <div class="kpi-card">
+                                        <div class="kpi-title">Técnicos Registrados</div>
+                                        <div class="kpi-value"><t t-esc="data['general_stats']['total_technicians']"/></div>
+                                    </div>
+                                </div>
+                                <div class="col-3">
+                                    <div class="kpi-card">
+                                        <div class="kpi-title">Costo Acumulado</div>
+                                        <div class="kpi-value" style="color: #2e7d32;">
+                                            <t t-esc="data['total_final_cost']" t-options="{'widget': 'monetary', 'display_currency': res_company.currency_id}"/>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Sección 1: Carga y Rendimiento de Técnicos -->
+                            <div class="section-header">Carga de Trabajo de los Técnicos</div>
+                            <table class="table table-sm table-striped table-bordered table-custom">
+                                <thead>
+                                    <tr>
+                                        <th>Nombre Técnico</th>
+                                        <th>Identificación</th>
+                                        <th>Especialidad</th>
+                                        <th>Teléfono / Correo</th>
+                                        <th style="width: 15%;">Mantenimientos Activos</th>
+                                        <th style="width: 15%;">Nivel de Carga</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <t t-foreach="data['general_stats']['technicians']" t-as="tech">
+                                        <tr>
+                                            <td><t t-esc="tech.name"/></td>
+                                            <td class="text-center"><t t-esc="tech.identification"/></td>
+                                            <td><t t-esc="tech.specialty_id.name or 'Sin Especialidad'"/></td>
+                                            <td>
+                                                <t t-esc="tech.phone"/><br/>
+                                                <span class="text-muted"><t t-esc="tech.email or ''"/></span>
+                                            </td>
+                                            <td class="text-center font-weight-bold"><t t-esc="tech.maintenance_count"/></td>
+                                            <td class="text-center">
+                                                <span t-attf-class="badge-custom badge-carga-#{tech.workload_level}">
+                                                    <t t-esc="data['general_stats']['workload_selection'].get(tech.workload_level, tech.workload_level)"/>
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    </t>
+                                </tbody>
+                            </table>
+
+                            <!-- Sección 2: Estado de Equipos y Mantenimientos -->
+                            <div class="row">
+                                <div class="col-12">
+                                    <div class="section-header">Distribución de Solicitudes</div>
+                                    <table class="table table-sm table-striped table-bordered table-custom">
+                                        <thead>
+                                            <tr>
+                                                <th>Estado Mantenimiento</th>
+                                                <th>Cantidad</th>
+                                                <th>Porcentaje</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <t t-foreach="data['states_count'].items()" t-as="state_count">
+                                                <t t-if="state_count[1] >= 0">
+                                                    <tr>
+                                                        <td><t t-esc="data['state_selection'].get(state_count[0], state_count[0])"/></td>
+                                                        <td class="text-center"><t t-esc="state_count[1]"/></td>
+                                                        <td class="text-center">
+                                                            <t t-esc="'%.1f' % (state_count[1] * 100.0 / data['total_count']) if data['total_count'] > 0 else '0.0'"/>%
+                                                        </td>
+                                                    </tr>
+                                                </t>
+                                            </t>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="row mt-3">
+                                <div class="col-12">
+                                    <div class="section-header">Estado de los Equipos</div>
+                                    <table class="table table-sm table-striped table-bordered table-custom">
+                                        <thead>
+                                            <tr>
+                                                <th>Estado del Equipo</th>
+                                                <th>Cantidad</th>
+                                                <th>Porcentaje</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <t t-foreach="data['general_stats']['eq_states_count'].items()" t-as="eq_state">
+                                                <tr>
+                                                    <td><t t-esc="data['general_stats']['eq_selection'].get(eq_state[0], eq_state[0])"/></td>
+                                                    <td class="text-center"><t t-esc="eq_state[1]"/></td>
+                                                    <td class="text-center">
+                                                        <t t-esc="'%.1f' % (eq_state[1] * 100.0 / data['general_stats']['total_equipments']) if data['general_stats']['total_equipments'] > 0 else '0.0'"/>%
+                                                    </td>
+                                                </tr>
+                                            </t>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </t>
+
+                        <t t-else="">
+                            <!-- ================= REPORT: DETAILED MAINTENANCE ================= -->
+                            <!-- Título principal -->
+                            <div class="row mb-4 mt-2">
+                                <div class="col-12">
+                                    <div class="report-title">Reporte General de Mantenimientos</div>
+                                </div>
+                            </div>
+
+                            <!-- Metadatos de Emisión y Filtros -->
+                            <div class="row mb-3" style="font-size: 11px;">
+                                <div class="col-6">
+                                    <strong>Fecha de Emisión:</strong> 
+                                    <span t-esc="context_timestamp(datetime.datetime.now()).strftime('%Y-%m-%d %H:%M:%S')"/><br/>
+                                    <strong>Generado por:</strong> <span t-esc="user.name"/><br/>
+                                </div>
+                                <div class="col-6 text-right">
+                                    <strong>Filtros Aplicados:</strong><br/>
+                                    <t t-if="data['wizard'].start_date">
+                                        <span>Desde: <t t-esc="data['wizard'].start_date"/></span><br/>
+                                    </t>
+                                    <t t-if="data['wizard'].end_date">
+                                        <span>Hasta: <t t-esc="data['wizard'].end_date"/></span><br/>
+                                    </t>
+                                    <t t-if="data['wizard'].technician_id">
+                                        <span>Técnico: <t t-esc="data['wizard'].technician_id.name"/></span><br/>
+                                    </t>
+                                    <t t-if="data['wizard'].state">
+                                        <span>Estado: <t t-esc="data['state_selection'].get(data['wizard'].state, data['wizard'].state)"/></span><br/>
+                                    </t>
+                                    <t t-if="not data['wizard'].start_date and not data['wizard'].end_date and not data['wizard'].technician_id and not data['wizard'].state">
+                                        <span>Todos los registros del sistema</span>
+                                    </t>
+                                </div>
+                            </div>
+
+                            <!-- Tarjetas KPI -->
+                            <div class="row mb-2">
+                                <div class="col-4">
+                                    <div class="kpi-card">
+                                        <div class="kpi-title">Mantenimientos Totales</div>
+                                        <div class="kpi-value"><t t-esc="data['total_count']"/></div>
+                                    </div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="kpi-card">
+                                        <div class="kpi-title">Costo Acumulado</div>
+                                        <div class="kpi-value" style="color: #2e7d32;">
+                                            <t t-esc="data['total_final_cost']" t-options="{'widget': 'monetary', 'display_currency': res_company.currency_id}"/>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="kpi-card">
+                                        <div class="kpi-title">Tiempo Promedio Real</div>
+                                        <div class="kpi-value"><t t-esc="'%.2f' % data['avg_real_time']"/> hrs</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Distribución por Estado -->
+                            <div class="row mb-3" style="font-size: 11px;">
+                                <div class="col-12">
+                                    <strong class="text-muted">DISTRIBUCIÓN POR ESTADO:</strong>
+                                    <t t-foreach="data['states_count'].items()" t-as="state_count">
+                                        <t t-if="state_count[1] > 0">
+                                            <span class="ml-3">
+                                                <strong t-esc="data['state_selection'].get(state_count[0], state_count[0])"/>:
+                                                <span t-esc="state_count[1]"/>
+                                            </span>
+                                        </t>
+                                    </t>
+                                </div>
+                            </div>
+
+                            <!-- Tabla de Datos -->
+                            <div class="row">
+                                <div class="col-12">
+                                    <table class="table table-sm table-striped table-bordered table-custom">
+                                        <thead>
+                                            <tr>
+                                                <th>Número</th>
+                                                <th>Cliente</th>
+                                                <th>Equipo</th>
+                                                <th>Técnico</th>
+                                                <th>Solicitud</th>
+                                                <th>Tipo</th>
+                                                <th>Prioridad</th>
+                                                <th>Estado</th>
+                                                <th>Costo Final</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <t t-foreach="data['records']" t-as="rec">
+                                                <tr>
+                                                    <td class="text-center font-weight-bold"><t t-esc="rec.number"/></td>
+                                                    <td><t t-esc="rec.client_id.name"/></td>
+                                                    <td>
+                                                        <t t-esc="rec.equipment_id.brand"/> <t t-esc="rec.equipment_id.model"/>
+                                                    </td>
+                                                    <td><t t-esc="rec.technician_id.name or 'No Asignado'"/></td>
+                                                    <td class="text-center">
+                                                        <span t-field="rec.request_date" t-options="{'widget': 'datetime', 'format': 'yyyy-MM-dd HH:mm'}"/>
+                                                    </td>
+                                                    <td class="text-center">
+                                                        <t t-esc="data['type_selection'].get(rec.maintenance_type, rec.maintenance_type)"/>
+                                                    </td>
+                                                    <td class="text-center">
+                                                        <t t-esc="data['priority_selection'].get(rec.priority, rec.priority)"/>
+                                                    </td>
+                                                    <td class="text-center">
+                                                        <span t-attf-class="badge-custom badge-#{rec.state}">
+                                                            <t t-esc="data['state_selection'].get(rec.state, rec.state)"/>
+                                                    </span>
+                                                    </td>
+                                                    <td class="text-right">
+                                                        <t t-esc="rec.final_cost" t-options="{'widget': 'monetary', 'display_currency': res_company.currency_id}"/>
+                                                    </td>
+                                                </tr>
+                                            </t>
+                                            <t t-if="not data['records']">
+                                                <tr>
+                                                    <td colspan="9" class="text-center text-muted">No se encontraron registros de mantenimiento.</td>
+                                                </tr>
+                                            </t>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </t>
+
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>

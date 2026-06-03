@@ -1,4 +1,4 @@
-id,name,identification,phone,email,specialty
-techstore_technician_1,Carlos Mendoza,100100100,+15550001,carlos.m@techstore.local,hardware
-techstore_technician_2,Ana Gómez,200200200,+15550002,ana.g@techstore.local,software
-techstore_technician_3,Roberto Sánchez,300300300,+15550003,roberto.s@techstore.local,networking
+id,name,identification,phone,email,specialty_id:id
+techstore_technician_1,Carlos Mendoza,1724567894,0999999991,carlos.m@techstore.local,specialty_hardware
+techstore_technician_2,Ana Gómez,0913572467,0999999992,ana.g@techstore.local,specialty_software
+techstore_technician_3,Roberto Sánchez,1042683571,0999999993,roberto.s@techstore.local,specialty_networking

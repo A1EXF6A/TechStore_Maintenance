@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <!--
+        Usuarios Odoo de demostración para los técnicos de TechStore.
+        Estos usuarios pueden iniciar sesión con sus credenciales y
+        solo verán los mantenimientos que tienen asignados.
+
+        Contraseña temporal para todos: TechStore2024!
+        (Se recomienda cambiarla en producción)
+    -->
+
+    <!-- Usuario: Carlos Mendoza (Especialidad: Hardware) -->
+    <record id="user_techstore_carlos" model="res.users">
+        <field name="name">Carlos Mendoza</field>
+        <field name="login">carlos.m@techstore.local</field>
+        <field name="email">carlos.m@techstore.local</field>
+        <field name="password">TechStore2024!</field>
+        <field name="groups_id" eval="[(6, 0, [ref('techstore_maintenance.group_techstore_technician')])]"/>
+    </record>
+
+    <!-- Usuario: Ana Gómez (Especialidad: Software) -->
+    <record id="user_techstore_ana" model="res.users">
+        <field name="name">Ana Gómez</field>
+        <field name="login">ana.g@techstore.local</field>
+        <field name="email">ana.g@techstore.local</field>
+        <field name="password">TechStore2024!</field>
+        <field name="groups_id" eval="[(6, 0, [ref('techstore_maintenance.group_techstore_technician')])]"/>
+    </record>
+
+    <!-- Usuario: Roberto Sánchez (Especialidad: Redes) -->
+    <record id="user_techstore_roberto" model="res.users">
+        <field name="name">Roberto Sánchez</field>
+        <field name="login">roberto.s@techstore.local</field>
+        <field name="email">roberto.s@techstore.local</field>
+        <field name="password">TechStore2024!</field>
+        <field name="groups_id" eval="[(6, 0, [ref('techstore_maintenance.group_techstore_technician')])]"/>
+    </record>
+
+    <!-- Vincular usuarios con sus técnicos respectivos -->
+    <record id="techstore_technician_1" model="techstore.technician">
+        <field name="user_id" ref="user_techstore_carlos"/>
+    </record>
+
+    <record id="techstore_technician_2" model="techstore.technician">
+        <field name="user_id" ref="user_techstore_ana"/>
+    </record>
+
+    <record id="techstore_technician_3" model="techstore.technician">
+        <field name="user_id" ref="user_techstore_roberto"/>
+    </record>
+</odoo>
