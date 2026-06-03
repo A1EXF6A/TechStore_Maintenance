@@ -16,7 +16,7 @@ class TechStoreMaintenance(models.Model):
     technician_id = fields.Many2one('techstore.technician', string='Técnico Asignado', tracking=True)
 
     request_date = fields.Datetime(string='Fecha de Solicitud', default=fields.Datetime.now, tracking=True)
-    start_date = fields.Datetime(string='Fecha de Inicio', tracking=True)
+    start_date = fields.Datetime(string='Fecha de Inicio', readonly=True, tracking=True)
     end_date = fields.Datetime(string='Fecha de Fin', tracking=True)
 
     maintenance_type = fields.Selection([
@@ -76,6 +76,10 @@ class TechStoreMaintenance(models.Model):
         for vals in vals_list:
             if vals.get('number', _('Nuevo')) == _('Nuevo'):
                 vals['number'] = self.env['ir.sequence'].next_by_code('techstore.maintenance') or _('Nuevo')
+            if not vals.get('description') and vals.get('equipment_id'):
+                equipment = self.env['techstore.equipment'].browse(vals['equipment_id'])
+                if equipment.exists() and equipment.problem_description:
+                    vals['description'] = equipment.problem_description
         # Antes de crear, si el usuario es técnico (y no admin/supervisor), asignarlo automáticamente
         user = self.env.user
         is_tech_user = user.has_group('techstore_maintenance.group_techstore_technician')
@@ -107,7 +111,7 @@ class TechStoreMaintenance(models.Model):
                 user_fields = {
                     'client_id', 'equipment_id', 'technician_id', 'maintenance_type', 'priority',
                     'description', 'diagnosis', 'solution', 'estimated_cost', 'final_cost',
-                    'estimated_time', 'customer_satisfaction', 'observations', 'active'
+                    'estimated_time', 'customer_satisfaction', 'observations', 'active', 'end_date'
                 }
                 if any(field in vals for field in user_fields):
                     raise ValidationError(_("No se puede modificar un mantenimiento que se encuentra en estado Finalizado o Cancelado."))
@@ -128,6 +132,8 @@ class TechStoreMaintenance(models.Model):
             new_state = vals['state']
             for rec in self:
                 if rec.state != new_state:
+                    if new_state == 'en_proceso' and not (vals.get('technician_id') or rec.technician_id):
+                        raise ValidationError(_("No se puede iniciar el proceso de un mantenimiento sin un técnico asignado."))
                     rec._create_history_log(new_state, f"Estado cambiado de {rec.state} a {new_state}")
 
                     if new_state == 'en_proceso' and not rec.start_date:
@@ -173,6 +179,11 @@ class TechStoreMaintenance(models.Model):
                 }
             }
 
+    @api.onchange('equipment_id')
+    def _onchange_equipment_id(self):
+        if self.equipment_id and self.equipment_id.problem_description:
+            self.description = self.equipment_id.problem_description
+
     @api.constrains('equipment_id')
     def _check_equipment_received(self):
         for rec in self:
@@ -183,6 +194,24 @@ class TechStoreMaintenance(models.Model):
                 is_sup = user.has_group('techstore_maintenance.group_techstore_supervisor')
                 if is_tech and not (is_admin or is_sup):
                     raise ValidationError(_("El técnico solo puede registrar mantenimientos para equipos que estén en estado 'Recibido'."))
+
+    @api.constrains('state', 'diagnosis', 'solution', 'estimated_cost', 'final_cost', 'end_date')
+    def _check_finalizado_fields(self):
+        for rec in self:
+            if rec.state == 'finalizado':
+                if not rec.diagnosis or not rec.diagnosis.strip():
+                    raise ValidationError(_("Para finalizar el mantenimiento, es obligatorio registrar el Diagnóstico Técnico."))
+                if not rec.solution or not rec.solution.strip():
+                    raise ValidationError(_("Para finalizar el mantenimiento, es obligatorio registrar la Solución Aplicada."))
+                if rec.estimated_cost == 0.0:
+                    raise ValidationError(_("El Costo Estimado no puede ser 0 al finalizar el mantenimiento. Por favor, ingrese un valor mayor a cero."))
+                if rec.final_cost == 0.0:
+                    raise ValidationError(_("El Costo Final no puede ser 0 al finalizar el mantenimiento. Por favor, ingrese un valor mayor a cero."))
+                if rec.end_date:
+                    if rec.start_date and rec.end_date < rec.start_date:
+                        raise ValidationError(_("La fecha de fin no puede ser anterior a la fecha de inicio."))
+                    if rec.end_date.date() < fields.Date.today():
+                        raise ValidationError(_("La fecha de fin no puede ser una fecha pasada (anterior a la fecha actual)."))
 
     def action_to_asignado(self):
         return self._open_state_wizard('asignado', _('Mantenimiento Asignado'))
@@ -201,6 +230,8 @@ class TechStoreMaintenance(models.Model):
 
     def _open_state_wizard(self, target_state, default_comment):
         self.ensure_one()
+        if target_state == 'en_proceso' and not self.technician_id:
+            raise ValidationError(_("No se puede iniciar el proceso de un mantenimiento sin un técnico asignado."))
         wizard = self.env['techstore.maintenance.state.wizard'].create({
             'maintenance_id': self.id,
             'old_state': self.state,

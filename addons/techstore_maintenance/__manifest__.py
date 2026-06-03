@@ -38,6 +38,11 @@
         'views/menus.xml',
     ],
     'demo': [],
+    'assets': {
+        'web.assets_backend': [
+            'techstore_maintenance/static/src/js/techstore_kanban.js',
+        ],
+    },
     'installable': True,
     'application': True,
     'license': 'LGPL-3',

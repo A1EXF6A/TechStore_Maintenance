@@ -1,5 +1,6 @@
 # pyrefly: ignore [missing-import]
 from odoo.tests import common
+from odoo import fields
 # pyrefly: ignore [missing-import]
 from odoo.exceptions import ValidationError
 
@@ -30,7 +31,8 @@ class TestTechStoreMaintenance(common.TransactionCase):
             'brand': 'Dell',
             'model': 'Latitude',
             'serial_number': 'SN-TEST-123',
-            'state': 'received'
+            'state': 'received',
+            'problem_description': 'Pantalla parpadea intermitentemente'
         })
 
         # Create specialty and technician
@@ -108,7 +110,13 @@ class TestTechStoreMaintenance(common.TransactionCase):
         self.assertEqual(self.equipment_1.state, 'under_repair')
 
         # Change maintenance to 'finalizado' -> equipment should be 'repaired'
-        maint.state = 'finalizado'
+        maint.write({
+            'diagnosis': 'El teclado está dañado.',
+            'solution': 'Se reemplazó el teclado por uno nuevo.',
+            'estimated_cost': 45.0,
+            'final_cost': 50.0,
+            'state': 'finalizado'
+        })
         self.assertEqual(self.equipment_1.state, 'repaired')
 
     def test_03_technician_received_only_constraint(self):
@@ -139,7 +147,8 @@ class TestTechStoreMaintenance(common.TransactionCase):
             'equipment_type_id': self.equipment_type.id,
             'brand': 'HP',
             'model': 'ProBook',
-            'serial_number': 'SN-NEW-999'
+            'serial_number': 'SN-NEW-999',
+            'problem_description': 'Batería no carga'
         })
 
         self.assertEqual(equipment.state_id.id, state_nuevo.id)
@@ -177,12 +186,18 @@ class TestTechStoreMaintenance(common.TransactionCase):
         })
 
         # Transition to finalizado
-        maint.state = 'finalizado'
+        maint.write({
+            'diagnosis': 'Problema con la pantalla.',
+            'solution': 'Se ajustaron los cables internos.',
+            'estimated_cost': 25.0,
+            'final_cost': 25.0,
+            'state': 'finalizado'
+        })
         self.assertEqual(maint.state, 'finalizado')
 
         # Trying to edit description should raise a ValidationError
         with self.assertRaises(ValidationError) as cm:
-            maint.write({
+            maint.with_user(self.tech_user).write({
                 'description': 'Attempting edit after completion'
             })
         self.assertIn("No se puede modificar un mantenimiento", str(cm.exception))
@@ -217,5 +232,193 @@ class TestTechStoreMaintenance(common.TransactionCase):
         ], limit=1)
         self.assertTrue(history)
         self.assertEqual(history.comment, 'Este es un comentario de transicion personalizado')
+
+    def test_08_cannot_start_without_technician(self):
+        """Test that transitioning to 'en_proceso' without an assigned technician raises ValidationError"""
+        maint = self.env['techstore.maintenance'].create({
+            'client_id': self.client_1.id,
+            'equipment_id': self.equipment_1.id,
+            'description': 'Process start without tech check',
+            'maintenance_type': 'corrective'
+        })
+        
+        # Transitioning to 'en_proceso' directly should raise ValidationError
+        with self.assertRaises(ValidationError):
+            maint.state = 'en_proceso'
+
+        # Opening state wizard for 'en_proceso' should also raise ValidationError
+        with self.assertRaises(ValidationError):
+            maint._open_state_wizard('en_proceso', 'Mantenimiento En Proceso')
+
+    def test_09_validation_finalizado_missing_fields(self):
+        """Test that transitioning to 'finalizado' without diagnosis or solution raises ValidationError"""
+        maint = self.env['techstore.maintenance'].create({
+            'client_id': self.client_1.id,
+            'equipment_id': self.equipment_1.id,
+            'description': 'Validation missing fields check',
+            'maintenance_type': 'corrective',
+            'estimated_cost': 100.0,
+            'final_cost': 120.0,
+        })
+        # Try to transition to finalizado without diagnosis and solution
+        with self.assertRaises(ValidationError):
+            maint.state = 'finalizado'
+
+        # Set diagnosis but leave solution empty
+        maint.diagnosis = 'Diagnóstico de prueba'
+        with self.assertRaises(ValidationError):
+            maint.state = 'finalizado'
+
+        # Set solution but clear diagnosis
+        maint.diagnosis = False
+        maint.solution = 'Solución de prueba'
+        with self.assertRaises(ValidationError):
+            maint.state = 'finalizado'
+
+    def test_10_validation_finalizado_zero_costs(self):
+        """Test that transitioning to 'finalizado' with zero estimated or final cost raises ValidationError"""
+        maint = self.env['techstore.maintenance'].create({
+            'client_id': self.client_1.id,
+            'equipment_id': self.equipment_1.id,
+            'description': 'Validation zero costs check',
+            'maintenance_type': 'corrective',
+            'diagnosis': 'Diagnóstico de prueba',
+            'solution': 'Solución de prueba',
+        })
+        # Try to transition to finalizado with both costs as 0
+        with self.assertRaises(ValidationError):
+            maint.state = 'finalizado'
+
+        # Set estimated_cost, final_cost remains 0
+        maint.estimated_cost = 50.0
+        with self.assertRaises(ValidationError):
+            maint.state = 'finalizado'
+
+        # Set final_cost, estimated_cost set to 0
+        maint.estimated_cost = 0.0
+        maint.final_cost = 60.0
+        with self.assertRaises(ValidationError):
+            maint.state = 'finalizado'
+
+    def test_11_validation_finalizado_success(self):
+        """Test that transitioning to 'finalizado' succeeds when all fields and non-zero costs are provided"""
+        maint = self.env['techstore.maintenance'].create({
+            'client_id': self.client_1.id,
+            'equipment_id': self.equipment_1.id,
+            'description': 'Validation success check',
+            'maintenance_type': 'corrective',
+        })
+        # Try to transition with everything correctly set
+        maint.write({
+            'diagnosis': 'Diagnóstico válido',
+            'solution': 'Solución válida',
+            'estimated_cost': 100.0,
+            'final_cost': 100.0,
+            'state': 'finalizado'
+        })
+        self.assertEqual(maint.state, 'finalizado')
+
+    def test_12_equipment_problem_description_required(self):
+        """Test that creating an equipment without problem_description raises ValidationError"""
+        with self.assertRaises(ValidationError):
+            self.env['techstore.equipment'].create({
+                'client_id': self.client_1.id,
+                'equipment_type_id': self.equipment_type.id,
+                'brand': 'HP',
+                'model': 'EliteBook',
+                'serial_number': 'SN-REQ-DESC-999'
+            })
+
+    def test_13_maintenance_auto_copy_problem_description(self):
+        """Test that maintenance request automatically copies problem_description from equipment"""
+        equipment = self.env['techstore.equipment'].create({
+            'client_id': self.client_1.id,
+            'equipment_type_id': self.equipment_type.id,
+            'brand': 'Asus',
+            'model': 'Zenbook',
+            'serial_number': 'SN-COPY-999',
+            'problem_description': 'Sobrecalentamiento del procesador'
+        })
+        
+        # Test creation auto-copy when description is not provided
+        maint_create = self.env['techstore.maintenance'].create({
+            'client_id': self.client_1.id,
+            'equipment_id': equipment.id,
+            'maintenance_type': 'corrective',
+        })
+        self.assertEqual(maint_create.description, 'Sobrecalentamiento del procesador')
+
+        # Test onchange copy in user interface simulator
+        maint_onchange = self.env['techstore.maintenance'].new({
+            'client_id': self.client_1.id,
+        })
+        maint_onchange.equipment_id = equipment
+        maint_onchange._onchange_equipment_id()
+        self.assertEqual(maint_onchange.description, 'Sobrecalentamiento del procesador')
+
+    def test_14_validation_finalizado_invalid_end_date_past(self):
+        """Test that transitioning to 'finalizado' with a past end_date raises ValidationError"""
+        from datetime import timedelta
+        past_date = fields.Datetime.to_string(fields.Datetime.now() - timedelta(days=2))
+        maint = self.env['techstore.maintenance'].create({
+            'client_id': self.client_1.id,
+            'equipment_id': self.equipment_1.id,
+            'description': 'Validation past end_date check',
+            'maintenance_type': 'corrective',
+            'diagnosis': 'Diagnóstico válido',
+            'solution': 'Solución válido',
+            'estimated_cost': 10.0,
+            'final_cost': 10.0,
+            'end_date': past_date
+        })
+        with self.assertRaises(ValidationError) as cm:
+            maint.state = 'finalizado'
+        self.assertIn("La fecha de fin no puede ser una fecha pasada", str(cm.exception))
+
+    def test_15_validation_finalizado_invalid_end_date_before_start(self):
+        """Test that transitioning to 'finalizado' with end_date before start_date raises ValidationError"""
+        from datetime import timedelta
+        now = fields.Datetime.now()
+        start = now + timedelta(days=2)
+        end = now + timedelta(days=1)
+        maint = self.env['techstore.maintenance'].create({
+            'client_id': self.client_1.id,
+            'equipment_id': self.equipment_1.id,
+            'description': 'Validation end_date before start_date check',
+            'maintenance_type': 'corrective',
+            'diagnosis': 'Diagnóstico válido',
+            'solution': 'Solución válido',
+            'estimated_cost': 10.0,
+            'final_cost': 10.0,
+            'start_date': start,
+            'end_date': end
+        })
+        with self.assertRaises(ValidationError) as cm:
+            maint.state = 'finalizado'
+        self.assertIn("La fecha de fin no puede ser anterior a la fecha de inicio", str(cm.exception))
+
+    def test_16_block_edit_end_date_when_finalizado(self):
+        """Test that modifying end_date is blocked once maintenance is finalized"""
+        maint = self.env['techstore.maintenance'].create({
+            'client_id': self.client_1.id,
+            'equipment_id': self.equipment_1.id,
+            'description': 'Validation block end_date check',
+            'maintenance_type': 'corrective',
+        })
+        # Transition to finalizado with valid inputs
+        maint.write({
+            'diagnosis': 'Diagnóstico de prueba',
+            'solution': 'Solución de prueba',
+            'estimated_cost': 50.0,
+            'final_cost': 50.0,
+            'state': 'finalizado'
+        })
+        # Try to modify end_date as technician user - should raise ValidationError
+        with self.assertRaises(ValidationError) as cm:
+            maint.with_user(self.tech_user).write({
+                'end_date': fields.Datetime.now()
+            })
+        self.assertIn("No se puede modificar un mantenimiento", str(cm.exception))
+
 
 

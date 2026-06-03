@@ -1,5 +1,6 @@
 # pyrefly: ignore [missing-import]
 from odoo import models, fields, api, _
+from odoo.exceptions import ValidationError
 
 class TechStoreEquipment(models.Model):
     _name = 'techstore.equipment'
@@ -15,7 +16,7 @@ class TechStoreEquipment(models.Model):
     serial_number = fields.Char(string='Número de Serie', required=True, tracking=True)
     receipt_date = fields.Date(string='Fecha de Recepción', default=fields.Date.context_today, tracking=True)
     has_warranty = fields.Boolean(string='Tiene Garantía', default=False)
-    problem_description = fields.Text(string='Descripción del Problema', tracking=True)
+    problem_description = fields.Text(string='Descripción del Problema', required=True, tracking=True)
     observations = fields.Text(string='Observaciones')
     # Keep a selection for workflow/statusbar compatibility but provide a Many2one model
     state = fields.Selection([
@@ -40,4 +41,10 @@ class TechStoreEquipment(models.Model):
             if vals.get('code', _('Nuevo')) == _('Nuevo'):
                 vals['code'] = self.env['ir.sequence'].next_by_code('techstore.equipment') or _('Nuevo')
         return super(TechStoreEquipment, self).create(vals_list)
+
+    @api.constrains('problem_description', 'serial_number')
+    def _check_problem_description(self):
+        for rec in self:
+            if not rec.problem_description or not rec.problem_description.strip():
+                raise ValidationError(_("Por favor, ingrese una descripción detallada del problema antes de registrar el equipo."))
 
