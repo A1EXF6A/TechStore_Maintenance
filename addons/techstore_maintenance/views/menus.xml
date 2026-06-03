@@ -41,6 +41,13 @@
               action="action_techstore_maintenance_metrics"
               sequence="50"/>
 
+    <!-- Reportes -->
+    <menuitem id="menu_techstore_maintenance_reports"
+              name="Reportes"
+              parent="menu_techstore_maintenance_root"
+              action="action_techstore_maintenance_report_wizard"
+              sequence="60"/>
+
     <!-- Configuración -->
     <menuitem id="menu_techstore_config"
               name="Configuración"

@@ -8,4 +8,5 @@ from . import maintenance
 from . import history
 from . import metrics
 from . import state_wizard
+from . import report_wizard
 

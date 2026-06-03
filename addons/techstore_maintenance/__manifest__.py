@@ -35,6 +35,8 @@
         'views/equipment_views.xml',
         'views/maintenance_views.xml',
         'views/metrics_views.xml',
+        'views/report_wizard_views.xml',
+        'views/report_maintenance_templates.xml',
         'views/menus.xml',
     ],
     'demo': [],

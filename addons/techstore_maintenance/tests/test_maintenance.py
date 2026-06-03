@@ -532,6 +532,78 @@ class TestTechStoreMaintenance(common.TransactionCase):
         wizard_fin.action_confirm()
         self.assertEqual(maint.state, 'finalizado')
 
+    def test_20_report_wizard_admin_flow(self):
+        """Test report wizard generation by admin (gets all maintenance records or filters by tech)"""
+        # Admin creates wizard with no filters, report_type='general'
+        wizard = self.env['techstore.maintenance.report.wizard'].create({
+            'report_type': 'general'
+        })
+        domain = wizard._get_maintenance_domain()
+        self.assertNotIn(('technician_id', '='), [(d[0], d[1]) if isinstance(d, tuple) else d for d in domain])
+
+        # Admin filters by technician_1 and report_type='mantenimiento'
+        wizard_filtered = self.env['techstore.maintenance.report.wizard'].create({
+            'report_type': 'mantenimiento',
+            'technician_id': self.technician_1.id
+        })
+        domain_filtered = wizard_filtered._get_maintenance_domain()
+        self.assertIn(('technician_id', '=', self.technician_1.id), domain_filtered)
+
+        # Call PDF generation action
+        action = wizard_filtered.action_generate_pdf()
+        self.assertEqual(action.get('report_name'), 'techstore_maintenance.report_maintenance_template')
+
+        # Test the abstract model report values method for general report
+        report_model = self.env['report.techstore_maintenance.report_maintenance_template']
+        values = report_model._get_report_values(wizard.ids)
+        self.assertTrue(values)
+        self.assertIn('report_data', values)
+        self.assertEqual(values['report_data'][0]['wizard'].id, wizard.id)
+        # Check that general statistics are present
+        self.assertTrue(values['report_data'][0]['general_stats'])
+        self.assertEqual(values['report_data'][0]['general_stats']['total_technicians'], 1)
+
+    def test_21_report_wizard_technician_flow(self):
+        """Test that report wizard enforces technician user restrictions and blocks general report"""
+        # Technician user creates wizard without specifying technician_id
+        wizard = self.env['techstore.maintenance.report.wizard'].with_user(self.tech_user).create({})
+        
+        # In default_get, technician_id should be automatically set to the technician linked to tech_user
+        self.assertEqual(wizard.technician_id.id, self.technician_1.id)
+        self.assertTrue(wizard.is_technician_user)
+
+        # Retrieve the domain from wizard
+        domain = wizard._get_maintenance_domain()
+        # Even if they tried to bypass, the domain should strictly filter to technician_1
+        self.assertIn(('technician_id', '=', self.technician_1.id), domain)
+
+        # A technician user trying to save report_type='general' should raise ValidationError
+        with self.assertRaises(ValidationError):
+            self.env['techstore.maintenance.report.wizard'].with_user(self.tech_user).create({
+                'report_type': 'general'
+            })
+
+    def test_22_report_wizard_excel_generation(self):
+        """Test excel report generation for both maintenance and general types, binary storage, and URL action return"""
+        # Test maintenance report excel
+        wizard_m = self.env['techstore.maintenance.report.wizard'].create({
+            'report_type': 'mantenimiento'
+        })
+        action_m = wizard_m.action_generate_excel()
+        self.assertEqual(action_m.get('type'), 'ir.actions.act_url')
+        self.assertTrue(wizard_m.excel_file)
+        self.assertTrue(wizard_m.excel_filename.endswith('.xlsx'))
+
+        # Test general report excel (multi-sheet)
+        wizard_g = self.env['techstore.maintenance.report.wizard'].create({
+            'report_type': 'general'
+        })
+        action_g = wizard_g.action_generate_excel()
+        self.assertEqual(action_g.get('type'), 'ir.actions.act_url')
+        self.assertTrue(wizard_g.excel_file)
+        self.assertTrue(wizard_g.excel_filename.endswith('.xlsx'))
+
+
 
 
 
