@@ -23,19 +23,19 @@ graph TD
 ### Especificación de Fórmulas Matemáticas:
 
 * **Tiempo de Atención (Attention Time):** Mide la velocidad de respuesta desde el ingreso hasta el inicio del trabajo.
-  $$\text{attention\_time} = \frac{\text{start\_date} - \text{request\_date}}{\text{3600 segundos}}$$
+  $$\text{Tiempo de Atención} = \frac{\text{Fecha de Inicio} - \text{Fecha de Solicitud}}{\text{3600 segundos}}$$
 * **Tiempo de Resolución (Resolution Time):** Representa la duración real acumulada de las tareas de reparación. Corresponde al valor del campo computado `real_time` del ticket de mantenimiento (diferencia en horas entre `end_date` y `start_date`).
 * **Cumplimiento SLA (SLA Compliance):** Evalúa si la reparación se completó dentro del tiempo estimado inicial.
-  $$\text{sla\_compliance} = \text{real\_time} \le \text{estimated\_time}$$
+  $$\text{Cumplimiento SLA} = \text{Tiempo Real} \le \text{Tiempo Estimado}$$
   *Si no se registra un tiempo estimado, el cumplimiento por defecto se evalúa como `True`.*
 * **Retraso (Delay):** Calcula el exceso de tiempo empleado respecto a la estimación original.
-  $$\text{delay} = \max(0.0, \text{real\_time} - \text{estimated\_time})$$
+  $$\text{Retraso} = \max(0.0, \text{Tiempo Real} - \text{Tiempo Estimado})$$
 * **Eficiencia del Técnico:** Mide la desviación del rendimiento respecto a la estimación estándar.
-  $$\text{technician\_efficiency} = \left(\frac{\text{estimated\_time}}{\text{real\_time}}\right) \times 100$$
+  $$\text{Eficiencia del Técnico} = \left(\frac{\text{Tiempo Estimado}}{\text{Tiempo Real}}\right) \times 100$$
   *Si el mantenimiento no ha registrado tiempo de resolución, la eficiencia por defecto es del $100\%$.*
 * **Conteo de Cambios de Estado:** Suma la cantidad total de transiciones registradas en la bitácora de auditoría (`techstore.maintenance.history`) asociadas al ticket.
 * **Indicador de Calidad:** Normaliza en escala porcentual el nivel de satisfacción reportado por el cliente.
-  $$\text{quality\_indicator} = \left(\frac{\text{satisfaccion\_cliente}}{4}\right) \times 100$$
+  $$\text{Indicador de Calidad} = \left(\frac{\text{Satisfacción del Cliente}}{4}\right) \times 100$$
   *Donde Malo = 1, Regular = 2, Bueno = 3, Excelente = 4. Los tickets no calificados se evalúan como $0\%$.*
 
 ---
