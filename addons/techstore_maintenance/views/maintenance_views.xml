@@ -104,7 +104,7 @@
                     <button name="action_to_en_proceso"
                             type="object"
                             string="Iniciar Proceso"
-                            invisible="state not in ('asignado', 'pendiente')"
+                            invisible="state not in ('nuevo', 'asignado', 'pendiente')"
                             class="oe_highlight"/>
                     <button name="action_to_pendiente"
                             type="object"
@@ -130,11 +130,12 @@
                             <field name="number"/>
                         </h1>
                     </div>
+                    <field name="is_technician_readonly" invisible="1"/>
                     <group>
                         <group string="Cliente y Equipo">
                             <field name="client_id"/>
                             <field name="equipment_id" domain="[('client_id', '=', client_id), ('state', '=', 'received')]"/>
-                            <field name="technician_id" options="{'no_create': True}"/>
+                            <field name="technician_id" options="{'no_create': True}" readonly="is_technician_readonly"/>
                         </group>
                         <group string="Planificación">
                             <field name="maintenance_type"/>

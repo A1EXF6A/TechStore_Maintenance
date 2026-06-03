@@ -420,5 +420,118 @@ class TestTechStoreMaintenance(common.TransactionCase):
             })
         self.assertIn("No se puede modificar un mantenimiento", str(cm.exception))
 
+    def test_17_technician_readonly_field(self):
+        """Test that is_technician_readonly computed field is True for technician and False for admin"""
+        maint_tech = self.env['techstore.maintenance'].with_user(self.tech_user).create({
+            'client_id': self.client_1.id,
+            'equipment_id': self.equipment_1.id,
+            'description': 'Tech readonly field check'
+        })
+        self.assertTrue(maint_tech.is_technician_readonly)
+
+        maint_admin = self.env['techstore.maintenance'].create({
+            'client_id': self.client_1.id,
+            'equipment_id': self.equipment_1.id,
+            'description': 'Admin readonly field check'
+        })
+        self.assertFalse(maint_admin.is_technician_readonly)
+
+    def test_18_technician_state_change_restriction(self):
+        """Test that a technician can only transition the state of maintenance requests assigned to them"""
+        # Create another technician and user
+        tech_2 = self.env['techstore.technician'].create({
+            'name': 'Second Tech',
+            'identification': '1710034065', # Valid Ecuadorian ID
+            'phone': '0999999993',
+            'email': 'tech2@test.com',
+            'specialty_id': self.specialty_hw.id
+        })
+        tech_user_2 = self.env['res.users'].create({
+            'name': 'Tech User 2',
+            'login': 'tech.user2@test.local',
+            'email': 'tech.user2@test.local',
+            'groups_id': [(6, 0, [self.group_tech.id])]
+        })
+        tech_2.user_id = tech_user_2
+
+        # Maintenance assigned to technician 1 (self.tech_user)
+        maint_my = self.env['techstore.maintenance'].create({
+            'client_id': self.client_1.id,
+            'equipment_id': self.equipment_1.id,
+            'technician_id': self.technician_1.id,
+            'description': 'My assigned maintenance'
+        })
+
+        # Maintenance assigned to technician 2
+        maint_other = self.env['techstore.maintenance'].create({
+            'client_id': self.client_1.id,
+            'equipment_id': self.equipment_1.id,
+            'technician_id': tech_2.id,
+            'description': 'Other assigned maintenance'
+        })
+
+        # Technician 1 changes state of their OWN maintenance -> should succeed
+        maint_my.with_user(self.tech_user).write({'state': 'en_proceso'})
+        self.assertEqual(maint_my.state, 'en_proceso')
+
+        # Technician 1 attempts to change state of ANOTHER technician's maintenance -> should raise ValidationError
+        with self.assertRaises(ValidationError) as cm:
+            maint_other.with_user(self.tech_user).write({'state': 'en_proceso'})
+        self.assertIn("Solo puede cambiar el estado de los mantenimientos que tiene asignados", str(cm.exception))
+
+        # Admin changes state of other maintenance -> should succeed (admin has global access)
+        maint_other.write({'state': 'en_proceso'})
+        self.assertEqual(maint_other.state, 'en_proceso')
+
+    def test_19_technician_created_maintenance_flow(self):
+        """Test that a technician can create a maintenance and transition it to other states"""
+        # Create maintenance request as technician user
+        maint = self.env['techstore.maintenance'].with_user(self.tech_user).create({
+            'client_id': self.client_1.id,
+            'equipment_id': self.equipment_1.id,
+            'description': 'Creado por técnico',
+            'maintenance_type': 'corrective'
+        })
+        # Check initial state and auto-assigned technician
+        self.assertEqual(maint.state, 'nuevo')
+        self.assertEqual(maint.technician_id.id, self.technician_1.id)
+
+        # Start the process
+        action = maint.with_user(self.tech_user).action_to_en_proceso()
+        self.assertEqual(action.get('res_model'), 'techstore.maintenance.state.wizard')
+        wizard = self.env['techstore.maintenance.state.wizard'].with_user(self.tech_user).browse(action.get('res_id'))
+        
+        # Confirm wizard to transition to 'en_proceso'
+        wizard.action_confirm()
+        self.assertEqual(maint.state, 'en_proceso')
+
+        # Move to 'pendiente'
+        action_pend = maint.with_user(self.tech_user).action_to_pendiente()
+        self.assertEqual(action_pend.get('res_model'), 'techstore.maintenance.state.wizard')
+        wizard_pend = self.env['techstore.maintenance.state.wizard'].with_user(self.tech_user).browse(action_pend.get('res_id'))
+        wizard_pend.action_confirm()
+        self.assertEqual(maint.state, 'pendiente')
+
+        # Move back to 'en_proceso'
+        action_proc = maint.with_user(self.tech_user).action_to_en_proceso()
+        wizard_proc = self.env['techstore.maintenance.state.wizard'].with_user(self.tech_user).browse(action_proc.get('res_id'))
+        wizard_proc.action_confirm()
+        self.assertEqual(maint.state, 'en_proceso')
+
+        # Finally transition to 'finalizado'
+        # First write mandatory fields for finalización
+        maint.with_user(self.tech_user).write({
+            'diagnosis': 'Diagnóstico de prueba',
+            'solution': 'Solución de prueba',
+            'estimated_cost': 50.0,
+            'final_cost': 60.0
+        })
+        action_fin = maint.with_user(self.tech_user).action_to_finalizado()
+        self.assertEqual(action_fin.get('res_model'), 'techstore.maintenance.state.wizard')
+        wizard_fin = self.env['techstore.maintenance.state.wizard'].with_user(self.tech_user).browse(action_fin.get('res_id'))
+        wizard_fin.action_confirm()
+        self.assertEqual(maint.state, 'finalizado')
+
+
 
 

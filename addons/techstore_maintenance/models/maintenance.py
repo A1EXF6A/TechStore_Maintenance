@@ -61,6 +61,7 @@ class TechStoreMaintenance(models.Model):
     observations = fields.Text(string='Observaciones')
     active = fields.Boolean(default=True, string='Activo')
     history_ids = fields.One2many('techstore.maintenance.history', 'maintenance_id', string='Historial de Estados')
+    is_technician_readonly = fields.Boolean(compute='_compute_is_technician_readonly')
 
     @api.depends('start_date', 'end_date')
     def _compute_real_time(self):
@@ -70,6 +71,15 @@ class TechStoreMaintenance(models.Model):
                 rec.real_time = duration.total_seconds() / 3600.0
             else:
                 rec.real_time = 0.0
+
+    def _compute_is_technician_readonly(self):
+        user = self.env.user
+        is_tech_user = user.has_group('techstore_maintenance.group_techstore_technician')
+        is_admin = user.has_group('techstore_maintenance.group_techstore_admin')
+        is_sup = user.has_group('techstore_maintenance.group_techstore_supervisor')
+        readonly_val = is_tech_user and not (is_admin or is_sup)
+        for rec in self:
+            rec.is_technician_readonly = readonly_val
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -130,6 +140,14 @@ class TechStoreMaintenance(models.Model):
 
         if 'state' in vals:
             new_state = vals['state']
+            if is_tech_user and not (is_admin or is_sup):
+                tech_rec = self.env['techstore.technician'].search([('user_id', '=', user.id)], limit=1)
+                for rec in self:
+                    if rec.state != new_state:
+                        # Si no está asignado o está asignado a otro técnico, lanzar error
+                        if not rec.technician_id or not tech_rec or rec.technician_id.id != tech_rec.id:
+                            raise ValidationError(_("Solo puede cambiar el estado de los mantenimientos que tiene asignados."))
+
             for rec in self:
                 if rec.state != new_state:
                     if new_state == 'en_proceso' and not (vals.get('technician_id') or rec.technician_id):
