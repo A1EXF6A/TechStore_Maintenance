@@ -39,7 +39,12 @@ class TechStoreMaintenance(models.Model):
         ('pendiente', 'Pendiente'),
         ('finalizado', 'Finalizado'),
         ('cancelado', 'Cancelado')
-    ], string='Estado', default='nuevo', tracking=True)
+    ], string='Estado', default='nuevo', tracking=True, group_expand='_read_group_states')
+
+    @api.model
+    def _read_group_states(self, stages, domain, order=None):
+        return ['nuevo', 'asignado', 'en_proceso', 'pendiente', 'finalizado', 'cancelado']
+
 
     description = fields.Text(string='Descripción del Problema', required=True)
     diagnosis = fields.Text(string='Diagnóstico Técnico')

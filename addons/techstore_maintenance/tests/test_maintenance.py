@@ -603,6 +603,14 @@ class TestTechStoreMaintenance(common.TransactionCase):
         self.assertTrue(wizard_g.excel_file)
         self.assertTrue(wizard_g.excel_filename.endswith('.xlsx'))
 
+    def test_23_kanban_group_expansion(self):
+        """Test that _read_group_states returns the correct ordered list of stages"""
+        maintenance_model = self.env['techstore.maintenance']
+        states = maintenance_model._read_group_states(None, None, None)
+        expected_states = ['nuevo', 'asignado', 'en_proceso', 'pendiente', 'finalizado', 'cancelado']
+        self.assertEqual(states, expected_states)
+
+
 
 
 
